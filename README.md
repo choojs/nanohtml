@@ -1,4 +1,4 @@
-# [bel](https://en.wikipedia.org/wiki/Bel_(mythology)
+# [bel](https://en.wikipedia.org/wiki/Bel_(mythology))
 
 A simple convenience helper for creating native DOM elements.
 
