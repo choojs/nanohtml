@@ -3,6 +3,7 @@
 A simple convenience helper for creating native DOM elements.
 
 [![build status](https://secure.travis-ci.org/shama/bel.svg)](https://travis-ci.org/shama/bel)
+[![experimental](http://hughsk.github.io/stability-badges/dist/experimental.svg)](http://github.com/hughsk/stability-badges)
 
 ## usage
 
@@ -46,46 +47,6 @@ var element = bel('button.clicker', {
 
 element.addEventListener('selected', function (e) {
   element.innerHTML = e.detail
-})
-```
-
-### usage with [diffhtml](https://github.com/tbranyen/diffhtml)
-
-This creates native elements so if you're using a DOM diffing library that works
-with native elements, like `diffhtml`, you can do the following:
-
-```js
-var bel = require('bel')
-var send = require('bel/send')
-var diff = require('diffhtml')
-
-var ul = bel('ul')
-
-function render (items) {
-  items.forEach(function (item) {
-    var li = bel('li', {
-      onclick: function () {
-        send(ul, 'selected', item.id)
-      },
-      innerHTML: item.name
-    })
-    // Add each li to the parent ul
-    diff.element(ul, li, { inner: true })
-  })
-  // Add ul to document.body
-  diff.element(document.body, ul)
-}
-
-// Render to the DOM
-render([
-  { id: 1, name: 'Grizzly' },
-  { id: 2, name: 'Polar' }
-  { id: 3, name: 'Brown' }
-])
-
-// Listen for the selected event
-ul.addEventListener('selected', function (e) {
-  console.log(e.detail + ' has been selected')
 })
 ```
 
