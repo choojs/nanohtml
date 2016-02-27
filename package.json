@@ -4,7 +4,7 @@
   "description": "A simple extension to native elements",
   "main": "index.js",
   "scripts": {
-    "test": "browserify test.js | testron"
+    "test": "standard && browserify test.js | testron"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,13 @@
   "devDependencies": {
     "browserify": "^13.0.0",
     "electron-prebuilt": "^0.36.9",
+    "standard": "^6.0.7",
     "tape": "^4.4.0",
     "testron": "^1.2.0"
+  },
+  "standard": {
+    "ignore": [
+      "parse-tag.js"
+    ]
   }
 }

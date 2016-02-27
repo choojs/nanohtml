@@ -1,3 +1,4 @@
+/* global CustomEvent */
 module.exports = function bel_send (el, name) {
   if (!el) {
     throw new Error('Please supply an element')
