@@ -2,6 +2,8 @@
 
 A simple convenience helper for creating native DOM elements.
 
+[![build status](https://secure.travis-ci.org/shama/bel.svg)](https://travis-ci.org/shama/bel)
+
 ## usage
 
 ```js
