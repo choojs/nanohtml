@@ -1,6 +1,6 @@
 # [bel](https://en.wikipedia.org/wiki/Bel_(mythology))
 
-A simple convenience helper for creating DOM elements with tagged template strings.
+A simple convenience helper for creating DOM elements with [tagged template strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
 
 [![build status](https://secure.travis-ci.org/shama/bel.svg)](https://travis-ci.org/shama/bel)
 [![experimental](http://hughsk.github.io/stability-badges/dist/experimental.svg)](http://github.com/hughsk/stability-badges)
