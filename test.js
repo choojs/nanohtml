@@ -1,15 +1,18 @@
 var test = require('tape')
-var bel = require('./')
+var $ = require('./')
 
 test('creates an element', function (t) {
   t.plan(2)
-  var button = bel('button.clicker', {
-    onclick: function () {
-      t.ok(true, 'was clicked')
-      t.end()
-    },
-    innerHTML: 'click me'
-  })
-  t.equal(button.outerHTML, '<button class="clicker">click me</button>')
+  var button = $`<button onclick=${function () {
+    el.send('selected', 'success')
+  }}>clickme</button>`
+  var el = $`<ul>
+    <li>${button}</li>
+  </ul>`
+  el.addEventListener('selected', function (e) {
+    t.equal(e.detail, 'success')
+    t.end()
+  }, false)
+  t.equal(el.outerHTML.replace(/[\r\n\s]+/g, ''), '<ul><li><button>clickme</button></li></ul>')
   button.click()
 })

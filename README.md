@@ -1,6 +1,6 @@
 # [bel](https://en.wikipedia.org/wiki/Bel_(mythology))
 
-A simple convenience helper for creating native DOM elements.
+A simple convenience helper for creating DOM elements with tagged template strings.
 
 [![build status](https://secure.travis-ci.org/shama/bel.svg)](https://travis-ci.org/shama/bel)
 [![experimental](http://hughsk.github.io/stability-badges/dist/experimental.svg)](http://github.com/hughsk/stability-badges)
@@ -8,46 +8,54 @@ A simple convenience helper for creating native DOM elements.
 ## usage
 
 ```js
-var bel = require('bel')
-var element = bel('button.clicker', {
-  onclick: function () {
-    element.innerHTML = 'I have been clicked!'
-  },
-  innerHTML: 'Click me'
-})
-document.body.appendChild(element)
-```
+var $ = require('bel')
 
-Where natively you would do:
+// Compose a list of buttons
+var list = $`<ul>
+  <li>${button(1)}</li>
+  <li>${button(2)}</li>
+</ul>`
 
-```js
-var element = document.createElement('button')
-element.className = 'clicker'
-element.addEventListener('click', function () {
-  element.innerHTML = 'I have been clicked!'
+// Add an event listener for actions coming up
+list.addEventListener('selected', function (e) {
+  alert(`Button ${e.detail} was selected`)
 }, false)
-element.innerHTML = 'Click me'
-document.body.appendChild(element)
+
+// Create buttons that send a "selected" action to the list
+function button (num) {
+  return $`<button onclick=${function () {
+    list.send('selected', num)
+  }}>button ${num}</button>`
+}
+
+// Use native browser API to append
+document.body.appendChild(list)
 ```
 
-### custom events
-
-Also includes a convenience helper for custom events:
+### With DOM diffing
+This library uses [hyperscript](https://www.npmjs.com/package/hyperscript) to build
+a custom element. If you want to use DOM diffing to insert the element into the
+DOM, check out [diffhtml](https://github.com/tbranyen/diffhtml):
 
 ```js
-var send = require('bel/send')
-var element = bel('button.clicker', {
-  onclick: function () {
-    send(element, 'selected', 'I have been clicked!')
-  },
-  innerHTML: 'Click me'
-})
+var $ = require('bel')
+var diff = require('diffhtml')
 
-// ...
+var count = 0
 
-element.addEventListener('selected', function (e) {
-  element.innerHTML = e.detail
-})
+function render () {
+  // Creates a button element
+  var button = $`<button onclick=${function () {
+    // When the button is clicked, increment count and render again
+    count++
+    render()
+  }}>count ${count}</button>`
+
+  // Renders inside the document.body
+  diff.element(document.body, button, { inner: true })
+}
+
+render()
 ```
 
 ## similar projects

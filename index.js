@@ -1,25 +1,21 @@
-var document = require('global/document')
-var parseTag = require('./parse-tag.js')
+/* global CustomEvent */
 
-module.exports = function bel (tag, props) {
-  tag = tag || 'div'
-  if (typeof tag !== 'string') {
-    props = tag
-    tag = 'div'
+var h = require('hyperscript')
+var hyperx = require('hyperx')
+var hx = hyperx(h)
+
+module.exports = function bel () {
+  var el = hx.apply(this, arguments)
+  el.toString = function (state) {
+    return el.outerHTML
   }
-  props = props || {}
-  tag = parseTag(tag, props)
-  var el = document.createElement(tag)
-  var propKeys = Object.keys(props)
-  propKeys.forEach(function (name) {
-    var prop = props[name]
-    if (name.slice(0, 2) === 'on') {
-      el.addEventListener(name.slice(2), function () {
-        return prop.call(this, Array.prototype.slice.call(arguments))
-      }, false)
-    } else {
-      el[name] = prop
+  el.send = function (action) {
+    var args = Array.prototype.slice.call(arguments, 1)
+    if (args.length === 1) {
+      args = args[0]
     }
-  })
+    var e = new CustomEvent(action, { detail: args })
+    el.dispatchEvent(e)
+  }
   return el
 }
