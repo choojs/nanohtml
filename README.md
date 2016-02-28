@@ -1,61 +1,90 @@
 # [bel](https://en.wikipedia.org/wiki/Bel_(mythology))
 
-A simple convenience helper for creating DOM elements with [tagged template strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
+A simple library for composable DOM elements using [tagged template strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
 
 [![build status](https://secure.travis-ci.org/shama/bel.svg)](https://travis-ci.org/shama/bel)
 [![experimental](http://hughsk.github.io/stability-badges/dist/experimental.svg)](http://github.com/hughsk/stability-badges)
 
 ## usage
 
+### A Simple Element
+
+Create the the element:
+
 ```js
+// list.js
 var $ = require('bel')
 
-// Compose a list of buttons
-var list = $`<ul>
-  <li>${button(1)}</li>
-  <li>${button(2)}</li>
-</ul>`
-
-// Add an event listener for actions coming up
-list.addEventListener('selected', function (e) {
-  alert(`Button ${e.detail} was selected`)
-}, false)
-
-// Create buttons that send a "selected" action to the list
-function button (num) {
-  return $`<button onclick=${function () {
-    list.send('selected', num)
-  }}>button ${num}</button>`
+module.exports = function (items) {
+  return $`<ul>
+    ${items.map(function (item) {
+      return $`<li>${item}</li>`
+    })}
+  </ul>`
 }
-
-// Use native browser API to append
-document.body.appendChild(list)
 ```
 
-### With DOM diffing
-This library uses [hyperscript](https://www.npmjs.com/package/hyperscript) to build
-a custom element. If you want to use DOM diffing to insert the element into the
-DOM, check out [diffhtml](https://github.com/tbranyen/diffhtml):
+Then pass data to it and add to your page:
 
 ```js
+// app.js
+var list = require('./list.js')
+var element = list([
+  'grizzly',
+  'polar',
+  'brown'
+])
+document.body.appendChild(element)
+```
+
+### Data Down, Events Up
+
+```js
+// list.js
 var $ = require('bel')
-var diff = require('diffhtml')
 
-var count = 0
-
-function render () {
-  // Creates a button element
-  var button = $`<button onclick=${function () {
-    // When the button is clicked, increment count and render again
-    count++
-    render()
-  }}>count ${count}</button>`
-
-  // Renders inside the document.body
-  diff.element(document.body, button, { inner: true })
+// The DOM is built by the data passed in
+module.exports = function (items) {
+  function render () {
+    return $`<ul>
+    ${items.map(function (item) {
+      return $`<li>${button(item.id, item.label)}</li>`
+    })}
+    </ul>`
+  }
+  function button (id, label) {
+    return $`<button onclick=${function () {
+      // Then events get sent up
+      element.send('selected', id)
+    }}>${label}</button>`
+  }
+  var element = render()
+  return element
 }
+```
 
-render()
+```js
+// app.js
+var $ = require('bel')
+var createList = require('./list.js')
+
+module.exports = function (bears) {
+  var list = createList(bears)
+  list.addEventListener('selected', function (e) {
+    // When a bear is selected, rerender with the newly selected item
+    // This will use DOM diffing to render, sending the data back down again
+    element.rerender(render(e.detail))
+  }, false)
+  function render (selected) {
+    return $`<div className="app">
+      <h1>Selected: ${selected}</h1>
+      ${list}
+    </div>`
+  }
+  // By default we havent selected anything
+  var element = render('none')
+  return element
+}
 ```
 
 ## similar projects
