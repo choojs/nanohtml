@@ -9,7 +9,7 @@ A simple library for composable DOM elements using [tagged template strings](htt
 
 ### A Simple Element
 
-Create the the element:
+Create an element:
 
 ```js
 // list.js
@@ -24,7 +24,7 @@ module.exports = function (items) {
 }
 ```
 
-Then pass data to it and add to your page:
+Then pass data to it and add to the DOM:
 
 ```js
 // app.js
