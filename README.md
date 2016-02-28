@@ -28,13 +28,13 @@ Then pass data to it and add to the DOM:
 
 ```js
 // app.js
-var list = require('./list.js')
-var element = list([
+var createList = require('./list.js')
+var list = createList([
   'grizzly',
   'polar',
   'brown'
 ])
-document.body.appendChild(element)
+document.body.appendChild(list)
 ```
 
 ### Data Down, Events Up
