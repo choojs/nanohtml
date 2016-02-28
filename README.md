@@ -81,7 +81,7 @@ module.exports = function (bears) {
       ${list}
     </div>`
   }
-  // By default we havent selected anything
+  // On first render, we haven't selected anything
   var element = render('none')
   return element
 }
