@@ -24,7 +24,6 @@
   "dependencies": {
     "diffhtml": "^0.6.3",
     "global": "^4.3.0",
-    "hyperscript": "^1.4.7",
     "hyperx": "^1.3.1"
   },
   "devDependencies": {
