@@ -1,5 +1,6 @@
 /* global CustomEvent */
 
+var document = require('global/document')
 var hyperx = require('hyperx')
 var diff = require('diffhtml')
 
@@ -45,7 +46,9 @@ var hx = hyperx(function createElement (tag, props, children) {
   return el
 })
 
-module.exports = function bel (str) {
+// TODO: SVG Support
+
+module.exports = function bel () {
   var el = hx.apply(this, arguments)
   el.toString = function () {
     return el.outerHTML
