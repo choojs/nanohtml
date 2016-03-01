@@ -1,8 +1,6 @@
-/* global CustomEvent */
-
 var document = require('global/document')
 var hyperx = require('hyperx')
-var diff = require('diffhtml')
+var morphdom = require('morphdom')
 
 var hx = hyperx(function createElement (tag, props, children) {
   var el = document.createElement(tag)
@@ -48,29 +46,26 @@ var hx = hyperx(function createElement (tag, props, children) {
 
 // TODO: SVG Support
 
+var id = 0
+
 module.exports = function bel () {
   var el = hx.apply(this, arguments)
+  if (!el.id) {
+    el.id = 'e' + id
+    id += 1
+  }
   el.toString = function () {
     return el.outerHTML
   }
-  el.send = function (action) {
-    var args = Array.prototype.slice.call(arguments, 1)
-    if (args.length === 1) {
-      args = args[0]
-    }
-    var e = new CustomEvent(action, {
-      detail: args,
-      bubbles: true,
-      cancelable: true
-    })
-    return this.dispatchEvent(e)
-  }
-  el.rerender = function (newel) {
+  el.update = function (newel) {
     if (typeof newel === 'function') {
       newel = newel()
     }
-    diff.outerHTML(el, newel)
-    return newel
+    // TODO: Someday eliminate the need for this
+    // We need to look up the actual element in the DOM because a parent element
+    // could have called .update() and replaced the child node
+    el = document.getElementById(el.id)
+    morphdom(el, newel)
   }
   return el
 }

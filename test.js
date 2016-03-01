@@ -4,15 +4,15 @@ var $ = require('./')
 test('creates an element', function (t) {
   t.plan(2)
   var button = $`<button onclick=${function () {
-    el.send('selected', 'success')
+    onselected('success')
   }}>clickme</button>`
   var el = $`<ul>
     <li>${button}</li>
   </ul>`
-  el.addEventListener('selected', function (e) {
-    t.equal(e.detail, 'success')
+  function onselected (result) {
+    t.equal(result, 'success')
     t.end()
-  }, false)
-  t.equal(el.outerHTML.replace(/[\r\n\s]+/g, ''), '<ul><li><button>clickme</button></li></ul>')
+  }
+  t.equal(el.outerHTML.replace(/[\r\n]+/g, ''), '<ul id="e1">    <li><button id="e0">clickme</button></li>  </ul>')
   button.click()
 })

@@ -37,14 +37,14 @@ var list = createList([
 document.body.appendChild(list)
 ```
 
-### Data Down, Events Up
+### Data Down, Actions Up
 
 ```js
 // list.js
 var $ = require('bel')
 
 // The DOM is built by the data passed in
-module.exports = function (items) {
+module.exports = function (items, onselected) {
   function render () {
     return $`<ul>
     ${items.map(function (item) {
@@ -54,8 +54,8 @@ module.exports = function (items) {
   }
   function button (id, label) {
     return $`<button onclick=${function () {
-      // Then events get sent up
-      element.send('selected', id)
+      // Then action gets sent up
+      onselected(id)
     }}>${label}</button>`
   }
   var element = render()
@@ -66,19 +66,18 @@ module.exports = function (items) {
 ```js
 // app.js
 var $ = require('bel')
-var createList = require('./list.js')
+var list = require('./list.js')
 
 module.exports = function (bears) {
-  var list = createList(bears)
-  list.addEventListener('selected', function (e) {
+  function onselected (id) {
     // When a bear is selected, rerender with the newly selected item
     // This will use DOM diffing to render, sending the data back down again
-    element.rerender(render(e.detail))
-  }, false)
+    element.update(render(id))
+  }
   function render (selected) {
     return $`<div className="app">
       <h1>Selected: ${selected}</h1>
-      ${list}
+      ${list(bears, onselected)}
     </div>`
   }
   // On first render, we haven't selected anything
