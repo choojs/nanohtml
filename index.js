@@ -4,10 +4,7 @@ var morphdom = require('morphdom')
 
 var SET_ATTR_PROPS = {
   class: 1,
-  value: 1,
-  checked: 1,
-  disabled: 1,
-  required: 1
+  value: 1
 }
 var BOOL_PROPS = {
   autofocus: 1,
@@ -33,7 +30,7 @@ var hx = hyperx(function createElement (tag, props, children) {
         else if (val === 'false') continue
       }
       // If a property prefers setAttribute instead
-      if (SET_ATTR_PROPS[p]) {
+      if (SET_ATTR_PROPS[p] || BOOL_PROPS[p]) {
         el.setAttribute(p, val)
       } else {
         el[p] = val
