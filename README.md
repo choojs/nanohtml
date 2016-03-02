@@ -4,7 +4,7 @@
 [![build status][travis-image]][travis-url]
 [![Downloads][downloads-image]][downloads-url]
 [![js-standard-style][standard-image]][standard-url]
-![experimental][experimental-image]]
+![experimental][experimental-image]
 
 A simple library for composable DOM elements using [tagged template strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
 
