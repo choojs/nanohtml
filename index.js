@@ -10,9 +10,16 @@ var SET_ATTR_PROPS = {
   required: 1
 }
 var BOOL_PROPS = {
+  autofocus: 1,
   checked: 1,
+  defaultChecked: 1,
   disabled: 1,
-  required: 1
+  formNoValidate: 1,
+  indeterminate: 1,
+  readOnly: 1,
+  required: 1,
+  willValidate: 1
+
 }
 
 var hx = hyperx(function createElement (tag, props, children) {
