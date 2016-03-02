@@ -28,7 +28,7 @@ test('using class and className', function (t) {
 })
 
 test('create inputs', function (t) {
-  t.plan(4)
+  t.plan(5)
 
   var expected = 'testing'
   var result = $`<input type="text" value="${expected}" />`
@@ -38,6 +38,7 @@ test('create inputs', function (t) {
   result = $`<input type="checkbox" checked="${true}" disabled="${false}" />`
   t.equal(result.getAttribute('type'), 'checkbox', 'created a checkbox')
   t.equal(result.getAttribute('checked'), 'checked', 'set the checked attribute')
+  t.equal(result.getAttribute('disabled'), null, 'should not have set the disabled attribute')
 
   t.end()
 })
