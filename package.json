@@ -4,6 +4,7 @@
   "description": "A simple extension to native elements",
   "main": "index.js",
   "scripts": {
+    "start": "wzrd test.js:bundle.js",
     "test": "standard && browserify test.js | testron"
   },
   "repository": {
@@ -31,6 +32,7 @@
     "electron-prebuilt": "^0.36.9",
     "standard": "^6.0.7",
     "tape": "^4.4.0",
-    "testron": "^1.2.0"
+    "testron": "^1.2.0",
+    "wzrd": "^1.3.1"
   }
 }

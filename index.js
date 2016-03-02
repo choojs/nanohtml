@@ -2,11 +2,35 @@ var document = require('global/document')
 var hyperx = require('hyperx')
 var morphdom = require('morphdom')
 
+var SET_ATTR_PROPS = {
+  class: 1,
+  value: 1,
+  checked: 1,
+  disabled: 1,
+  required: 1
+}
+var BOOL_PROPS = {
+  checked: 1,
+  disabled: 1,
+  required: 1
+}
+
 var hx = hyperx(function createElement (tag, props, children) {
   var el = document.createElement(tag)
   for (var p in props) {
     if (props.hasOwnProperty(p)) {
-      el[p] = props[p]
+      var val = props[p]
+      // If a property is boolean, set itself to the key
+      if (BOOL_PROPS[p]) {
+        if (val === 'true') val = p
+        else if (val === 'false') continue
+      }
+      // If a property prefers setAttribute instead
+      if (SET_ATTR_PROPS[p]) {
+        el.setAttribute(p, val)
+      } else {
+        el[p] = val
+      }
     }
   }
   function appendChild (childs) {
