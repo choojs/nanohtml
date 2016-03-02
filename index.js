@@ -89,6 +89,7 @@ module.exports = function bel () {
     // We need to look up the actual element in the DOM because a parent element
     // could have called .update() and replaced the child node
     el = document.getElementById(el.id)
+    newel.id = el.id
     morphdom(el, newel)
   }
   return el
