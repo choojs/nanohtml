@@ -8,9 +8,6 @@
 
 A simple library for composable DOM elements using [tagged template strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
 
-[![build status](https://secure.travis-ci.org/shama/bel.svg)](https://travis-ci.org/shama/bel)
-[![experimental](http://hughsk.github.io/stability-badges/dist/experimental.svg)](http://github.com/hughsk/stability-badges)
-
 ## usage
 
 ### A Simple Element
