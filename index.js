@@ -16,7 +16,6 @@ var BOOL_PROPS = {
   readOnly: 1,
   required: 1,
   willValidate: 1
-
 }
 
 var hx = hyperx(function createElement (tag, props, children) {
@@ -81,9 +80,6 @@ module.exports = function bel () {
   if (!el.id) {
     el.id = 'e' + id
     id += 1
-  }
-  el.toString = function () {
-    return el.outerHTML
   }
   el.update = function (newel) {
     if (typeof newel === 'function') {
