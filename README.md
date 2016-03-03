@@ -10,6 +10,8 @@ A simple library for composable DOM elements using [tagged template strings](htt
 
 ## usage
 
+For a more in depth tutorial on getting started, please [check out the wiki](https://github.com/shama/bel/wiki).
+
 ### A Simple Element
 
 Create an element:
