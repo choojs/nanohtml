@@ -84,7 +84,7 @@ var id = 0
 module.exports = function bel () {
   var el = hx.apply(this, arguments)
   if (!el.id) {
-    el.id = 'e' + id
+    el.id = 'bel-' + id
     id += 1
   }
   el.update = function (newel) {
