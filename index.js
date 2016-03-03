@@ -1,6 +1,7 @@
 var document = require('global/document')
 var hyperx = require('hyperx')
 var morphdom = require('morphdom')
+var css = require('dom-css')
 
 var SET_ATTR_PROPS = {
   class: 1,
@@ -23,6 +24,11 @@ var hx = hyperx(function createElement (tag, props, children) {
   for (var p in props) {
     if (props.hasOwnProperty(p)) {
       var val = props[p]
+      // If a pseudo inline style, apply the styles
+      if (p === 'style' && typeof val !== 'string') {
+        css(el, val)
+        continue
+      }
       // If a property is boolean, set itself to the key
       if (BOOL_PROPS[p]) {
         if (val === 'true') val = p
