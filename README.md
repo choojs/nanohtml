@@ -18,12 +18,12 @@ Create an element:
 
 ```js
 // list.js
-var $ = require('bel')
+var bel = require('bel')
 
 module.exports = function (items) {
-  return $`<ul>
+  return bel`<ul>
     ${items.map(function (item) {
-      return $`<li>${item}</li>`
+      return bel`<li>${item}</li>`
     })}
   </ul>`
 }
@@ -46,19 +46,19 @@ document.body.appendChild(list)
 
 ```js
 // list.js
-var $ = require('bel')
+var bel = require('bel')
 
 // The DOM is built by the data passed in
 module.exports = function (items, onselected) {
   function render () {
-    return $`<ul>
+    return bel`<ul>
     ${items.map(function (item) {
-      return $`<li>${button(item.id, item.label)}</li>`
+      return bel`<li>${button(item.id, item.label)}</li>`
     })}
     </ul>`
   }
   function button (id, label) {
-    return $`<button onclick=${function () {
+    return bel`<button onclick=${function () {
       // Then action gets sent up
       onselected(id)
     }}>${label}</button>`
@@ -70,7 +70,7 @@ module.exports = function (items, onselected) {
 
 ```js
 // app.js
-var $ = require('bel')
+var bel = require('bel')
 var list = require('./list.js')
 
 module.exports = function (bears) {
@@ -80,7 +80,7 @@ module.exports = function (bears) {
     element.update(render(id))
   }
   function render (selected) {
-    return $`<div className="app">
+    return bel`<div className="app">
       <h1>Selected: ${selected}</h1>
       ${list(bears, onselected)}
     </div>`
