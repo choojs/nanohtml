@@ -16,3 +16,13 @@ test('create inputs', function (t) {
 
   t.end()
 })
+
+test('svg', function (t) {
+  t.plan(2)
+  var result = bel`<svg width="150" height="100" viewBox="0 0 3 2">
+    <rect width="1" height="2" x="0" fill="#008d46" />
+  </svg>`
+  t.equal(result.tagName, 'svg', 'create svg tag')
+  t.equal(result.childNodes[1].tagName, 'rect', 'created child rect tag')
+  t.end()
+})
