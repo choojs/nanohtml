@@ -83,20 +83,23 @@ var id = 0
 
 module.exports = function bel () {
   var el = hx.apply(this, arguments)
-  if (!el.id) {
-    el.id = 'bel-' + id
+  if (el.dataset && !el.dataset.bel) {
+    el.dataset.bel = id
     id += 1
   }
   el.update = function (newel) {
     if (typeof newel === 'function') {
       newel = newel()
     }
-    // TODO: Someday eliminate the need for this
-    // We need to look up the actual element in the DOM because a parent element
-    // could have called .update() and replaced the child node
-    el = document.getElementById(el.id)
-    newel.id = el.id
-    morphdom(el, newel)
+    newel.dataset.bel = el.dataset.bel
+    return morphdom(el, newel, {
+      getNodeKey: function (el) {
+        if (el.dataset && el.dataset.bel) {
+          return el.dataset.bel
+        }
+        return el.id
+      }
+    })
   }
   return el
 }
