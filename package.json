@@ -25,14 +25,14 @@
   "dependencies": {
     "dom-css": "^2.0.0",
     "global": "^4.3.0",
-    "hyperx": "^1.3.1",
+    "hyperx": "^2.0.1",
     "morphdom": "^1.1.2"
   },
   "devDependencies": {
     "browserify": "^13.0.0",
     "electron-prebuilt": "^0.36.9",
     "standard": "^6.0.7",
-    "tape": "^4.4.0",
+    "tape": "^4.5.0",
     "testron": "^1.2.0",
     "wzrd": "^1.3.1"
   }
