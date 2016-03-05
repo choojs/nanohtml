@@ -2,7 +2,7 @@ var document = require('global/document')
 var hyperx = require('hyperx')
 var morphdom = require('morphdom')
 var css = require('dom-css')
-var createElementCalls = require('./lib/create-element-calls.js')
+var create = require('./create.js')
 
 var KEY = 'bel'
 var hx = hyperx(function (tag, props, children) {
@@ -32,6 +32,7 @@ var hx = hyperx(function (tag, props, children) {
 
 var id = 0
 
+module.exports.create = create
 module.exports = function bel () {
   var el = hx.apply(this, arguments)
   if (!belid(el)) {
