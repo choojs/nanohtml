@@ -3,6 +3,7 @@ var hyperx = require('hyperx')
 var morphdom = require('morphdom')
 var css = require('dom-css')
 
+var KEY = 'bel'
 var SET_ATTR_PROPS = {
   class: 1,
   value: 1
@@ -83,23 +84,47 @@ var id = 0
 
 module.exports = function bel () {
   var el = hx.apply(this, arguments)
-  if (el.dataset && !el.dataset.bel) {
-    el.dataset.bel = id
+  if (!belid(el)) {
+    belid(el, id)
     id += 1
   }
   el.update = function (newel) {
     if (typeof newel === 'function') {
       newel = newel()
     }
-    newel.dataset.bel = el.dataset.bel
+    belid(newel, belid(el))
+    if (el && !el.parentNode) {
+      // Lost element, find it
+      el = document.querySelector('[data-bel="' + el.dataset.bel + '"]')
+    }
     return morphdom(el, newel, {
       getNodeKey: function (el) {
-        if (el.dataset && el.dataset.bel) {
-          return el.dataset.bel
-        }
-        return el.id
+        var id = belid(el)
+        return (id) ? id : el.id
       }
     })
   }
   return el
+}
+
+if (typeof document !== 'undefined' && document.head && document.head.dataset) {
+  function belid (el, val) {
+    if (el && el.dataset) {
+      if (arguments.length > 1) {
+        return el.dataset[KEY] = val
+      } else {
+        return el.dataset[KEY]
+      }
+    }
+  }
+} else {
+  function belid (el, val) {
+    if (el && typeof el.getAttribute === 'function') {
+      if (arguments.length > 1) {
+        return el.setAttribute('data-' + KEY, val)
+      } else {
+        return el.getAttribute('data-' + KEY)
+      }
+    }
+  }
 }
