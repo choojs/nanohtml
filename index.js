@@ -1,10 +1,10 @@
 var document = require('global/document')
 var hyperx = require('hyperx')
 var morphdom = require('morphdom')
-var create = require('./create.js')()
+var create = require('./create.js')
 
 var KEY = 'bel'
-var hx = hyperx(create)
+var hx = hyperx(create())
 var id = 0
 
 module.exports.create = create
