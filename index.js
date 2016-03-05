@@ -6,6 +6,7 @@ var create = require('./create.js')
 var KEY = 'bel'
 var hx = hyperx(create())
 var id = 0
+var belid
 
 module.exports.create = create
 module.exports = function bel () {
