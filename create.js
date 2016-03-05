@@ -1,3 +1,6 @@
+var document = require('global/document')
+var domcss = require('dom-css')
+
 var SVGNS = 'http://www.w3.org/2000/svg'
 var BOOL_PROPS = {
   autofocus: 1,
@@ -11,6 +14,7 @@ var BOOL_PROPS = {
   willvalidate: 1
 }
 var SVG_TAGS = [
+  'svg',
   'altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor',
   'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile',
   'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix',
@@ -27,92 +31,128 @@ var SVG_TAGS = [
   'tspan', 'use', 'view', 'vkern'
 ]
 
-module.exports = function createElementCalls (tag, props, children) {
-  var calls = []
+module.exports = function belCreate (opts) {
+  opts = opts || {}
+  var raw = opts.raw === true
 
-  // If an svg tag, it needs a namespace
-  if (SVG_TAGS.indexOf(tag) !== -1) {
-    props.namespace = SVGNS
-  }
+  return function belCreateElement (tag, props, children) {
+    var calls = []
+    var el
 
-  // If we are using a namespace
-  var ns = false
-  if (props.namespace) {
-    ns = props.namespace
-    delete props.namespace
-  }
+    // If an svg tag, it needs a namespace
+    if (SVG_TAGS.indexOf(tag) !== -1) {
+      props.namespace = SVGNS
+    }
 
-  // Create the element
-  if (ns) {
-    calls.push(['createElementNS', ns, tag])
-  } else {
-    calls.push(['createElement', tag])
-  }
+    // If we are using a namespace
+    var ns = false
+    if (props.namespace) {
+      ns = props.namespace
+      delete props.namespace
+    }
 
-  // Create the properties
-  for (var p in props) {
-    if (props.hasOwnProperty(p)) {
-      var key = p.toLowerCase()
-      var val = props[p]
-      // Normalize className
-      if (key === 'classname') {
-        key = 'class'
-        p = 'class'
-      }
-      // If a pseudo inline style, apply the styles
-      if (key === 'style' && typeof val !== 'string') {
-        calls.push(['style', val])
-        continue
-      }
-      // If a property is boolean, set itself to the key
-      if (BOOL_PROPS[key]) {
-        if (val === 'true') val = key
-        else if (val === 'false') continue
-      }
-      // If a property prefers being set directly vs setAttribute
-      if (key.slice(0, 2) === 'on') {
-        calls.push(['expr', p, val])
+    // Create the element
+    if (ns) {
+      if (raw) {
+        calls.push(['createElementNS', ns, tag])
       } else {
-        if (ns) {
-          calls.push(['setAttributeNS', null, p, val])
+        el = document.createElementNS(ns, tag)
+      }
+    } else {
+      if (raw) {
+        calls.push(['createElement', tag])
+      } else {
+        el = document.createElement(tag)
+      }
+    }
+
+    // Create the properties
+    for (var p in props) {
+      if (props.hasOwnProperty(p)) {
+        var key = p.toLowerCase()
+        var val = props[p]
+        // Normalize className
+        if (key === 'classname') {
+          key = 'class'
+          p = 'class'
+        }
+        // If a pseudo inline style, apply the styles
+        if (key === 'style' && typeof val !== 'string') {
+          if (raw) {
+            calls.push(['style', val])
+          } else {
+            domcss(el, val)
+          }
+          continue
+        }
+        // If a property is boolean, set itself to the key
+        if (BOOL_PROPS[key]) {
+          if (val === 'true') val = key
+          else if (val === 'false') continue
+        }
+        // If a property prefers being set directly vs setAttribute
+        if (key.slice(0, 2) === 'on') {
+          if (raw) {
+            calls.push(['expr', p, val])
+          } else {
+            el[p] = val
+          }
         } else {
-          calls.push(['setAttribute', p, val])
+          if (ns) {
+            if (raw) {
+              calls.push(['setAttributeNS', null, p, val])
+            } else {
+              el.setAttributeNS(null, p, val)
+            }
+          } else {
+            if (raw) {
+              calls.push(['setAttribute', p, val])
+            } else {
+              el.setAttribute(p, val)
+            }
+          }
         }
       }
     }
-  }
 
-  function appendChild (childs) {
-    if (!Array.isArray(childs)) return
-    for (var i = 0; i < childs.length; i++) {
-      var node = childs[i]
-      if (Array.isArray(node)) {
-        appendChild(node)
-        continue
-      }
+    function appendChild (childs) {
+      if (!Array.isArray(childs)) return
+      for (var i = 0; i < childs.length; i++) {
+        var node = childs[i]
+        if (Array.isArray(node)) {
+          appendChild(node)
+          continue
+        }
 
-      // TODO: Escaping?
+        if (typeof node === 'number' ||
+          typeof node === 'boolean' ||
+          node instanceof Date ||
+          node instanceof RegExp) {
+          node = node.toString()
+        }
 
-      if (typeof node === 'number' ||
-        typeof node === 'boolean' ||
-        node instanceof Date ||
-        node instanceof RegExp) {
-        node = node.toString()
-      }
+        if (typeof node === 'string') {
+          if (raw) {
+            calls.push(['createTextNode', node])
+          } else {
+            node = document.createTextNode(node)
+          }
+        }
 
-      if (typeof node === 'string') {
-        calls.push(['createTextNode', node])
-      }
-
-      if (node && node.nodeName && node.nodeType) {
-        calls.push(['appendChild', node])
+        if (node && node.nodeName && node.nodeType) {
+          if (raw) {
+            calls.push(['appendChild', node])
+          } else {
+            el.appendChild(node)
+          }
+        }
       }
     }
+    appendChild(children)
+
+    // TODO: Validation checks
+    // TODO: Check for a11y things
+
+    return (raw) ? calls : el
   }
-  appendChild(children)
-
-  // TODO: Validation checks
-  // TODO: Check for a11y things
-
-  return calls
 }
