@@ -1,5 +1,4 @@
 var test = require('tape')
-var document = require('global/document')
 var bel = require('../')
 
 test('create inputs', function (t) {

@@ -4,6 +4,7 @@ var morphdom = require('morphdom')
 var css = require('dom-css')
 
 var KEY = 'bel'
+var belid
 var SET_ATTR_PROPS = {
   class: 1,
   value: 1
@@ -100,7 +101,7 @@ module.exports = function bel () {
     return morphdom(el, newel, {
       getNodeKey: function (el) {
         var id = belid(el)
-        return (id) ? id : el.id
+        return id || el.id
       }
     })
   }
@@ -108,17 +109,17 @@ module.exports = function bel () {
 }
 
 if (typeof document !== 'undefined' && document.head && document.head.dataset) {
-  function belid (el, val) {
+  belid = function belid (el, val) {
     if (el && el.dataset) {
       if (arguments.length > 1) {
-        return el.dataset[KEY] = val
+        el.dataset[KEY] = val
       } else {
         return el.dataset[KEY]
       }
     }
   }
 } else {
-  function belid (el, val) {
+  belid = function belid (el, val) {
     if (el && typeof el.getAttribute === 'function') {
       if (arguments.length > 1) {
         return el.setAttribute('data-' + KEY, val)
