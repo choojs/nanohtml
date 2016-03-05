@@ -99,6 +99,8 @@ module.exports = function (bears) {
   An element authoring library for creating standalone and performant elements
 * [virtual-dom](https://github.com/Matt-Esch/virtual-dom)  
   A Virtual DOM and diffing algorithm
+* [hyperscript](https://github.com/dominictarr/hyperscript)  
+  Create HyperText with JavaScript.
 
 # license
 (c) 2016 Kyle Robinson Young. MIT License
