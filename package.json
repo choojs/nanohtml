@@ -4,8 +4,8 @@
   "description": "A simple extension to native elements",
   "main": "index.js",
   "scripts": {
-    "start": "wzrd test.js:bundle.js",
-    "test": "standard && browserify test.js | testron"
+    "start": "wzrd test/index.js:bundle.js",
+    "test": "standard && browserify test/index.js | testron"
   },
   "repository": {
     "type": "git",
