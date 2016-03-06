@@ -7,5 +7,5 @@ module.exports = function (name, fn, times) {
     fn()
   }
   var end = hrtime(start)
-  console.log(end[1] / 1000000, 'ms', name)
+  console.log((end[1] / 1000000) / times, 'ms', name)
 }
