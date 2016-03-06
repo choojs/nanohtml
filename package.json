@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "wzrd test/index.js:bundle.js",
-    "test": "standard && browserify test/index.js | testron"
+    "test": "standard && browserify test/index.js | testron",
+    "bench": "wzrd bench/index.js:bundle.js"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "morphdom": "^1.1.2"
   },
   "devDependencies": {
+    "browser-process-hrtime": "^0.1.2",
     "browserify": "^13.0.0",
     "electron-prebuilt": "^0.36.9",
     "standard": "^6.0.7",
