@@ -51,6 +51,78 @@ test('can update and submit inputs', function (t) {
   document.querySelector('button').click()
 })
 
+test('create a loading app then replace it', function (t) {
+  t.plan(3)
+  document.body.innerHTML = ''
+  var time = 100
+
+  // Create a loading app
+  var app = bel`<div class="loading">
+    Loading...
+  </div>`
+  document.body.appendChild(app)
+
+  // Some time later, the app has loaded
+  setTimeout(function () {
+    var content = nestedElement(onaction)
+    app.update(template(content))
+  }, time * 1)
+
+  // Some time after that, a button is clicked
+  setTimeout(function () {
+    t.equal(document.querySelector('nav').textContent, 'NAV', 'Past loading state')
+    var buttons = document.querySelectorAll('button')
+    buttons[0].click()
+  }, time * 2)
+
+  // Then another button is clicked that replaces the app contents
+  setTimeout(function () {
+    var buttons = document.querySelectorAll('button')
+    t.equal(buttons[0].textContent, 'changed 1', 'Nested element button updated itself')
+    buttons[1].click()
+  }, time * 3)
+
+  // Finally we check that the app got updated
+  setTimeout(function () {
+    var page = document.querySelector('.page')
+    t.equal(page.textContent, 'PAGE!', 'Action from below updated the entire page')
+    document.body.innerHTML = ''
+    t.end()
+  }, time * 4)
+
+  // When we get an action from below
+  function onaction () {
+    var page = bel`<div class="page">PAGE!</div>`
+    app.update(template(page))
+  }
+
+  // Template for our app
+  function template (content) {
+    return bel`<article class="app">
+      <nav>NAV</nav>
+      <section class="content">${content}</section>
+    </article>`
+  }
+
+  // Some element we are nesting in our app that updates itself
+  function nestedElement (onselected) {
+    var element = render('first')
+    return element
+    function render (label) {
+      return bel`<div class="nested-element">
+        <h3>Header</h3>
+        ${button(label + ' 1', function () {
+          element.update(render('changed'))
+        })}
+        ${button(label + ' 2', onselected)}
+      </div>`
+    }
+    function button (label, onclick) {
+      return bel`<button onclick=${onclick}>${label}</button>`
+    }
+  }
+})
+
 test('svg', function (t) {
   t.plan(2)
   var result = bel`<svg width="150" height="100" viewBox="0 0 3 2">
