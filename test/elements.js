@@ -17,6 +17,40 @@ test('create inputs', function (t) {
   t.end()
 })
 
+test('can update and submit inputs', function (t) {
+  t.plan(3)
+  document.body.innerHTML = ''
+  var expected = 'testing'
+  function render (data, onsubmit) {
+    var input = bel`<input type="text" value="${data}" />`
+    return bel`<div>
+      ${input}
+      <button onclick=${function () {
+        onsubmit(input.value)
+      }}>submit</button>
+    </div>`
+  }
+  var count = 0
+  var result = render(expected, function onsubmit (newvalue) {
+    count++
+    if (count === 1) {
+      t.equal(newvalue, 'changed')
+      result.update(render('changed again'), onsubmit)
+      process.nextTick(function () {
+        document.querySelector('button').click()
+      })
+    } else {
+      t.equal(newvalue, 'changed again')
+      document.body.innerHTML = ''
+      t.end()
+    }
+  })
+  document.body.appendChild(result)
+  t.equal(document.querySelector('input').value, expected, 'set the input correctly')
+  document.querySelector('input').value = 'changed'
+  document.querySelector('button').click()
+})
+
 test('svg', function (t) {
   t.plan(2)
   var result = bel`<svg width="150" height="100" viewBox="0 0 3 2">

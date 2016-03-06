@@ -70,6 +70,41 @@ test('update with child elements', function (t) {
   t.end()
 })
 
+test('update with child sending actions up', function (t) {
+  t.plan(3)
+  document.body.innerHTML = ''
+  var i = 0
+
+  function child (data, onselected) {
+    var childel = bel`<li onclick=${function () {
+      i++
+      onselected('data from child ' + i)
+    }}>${data}</li>`
+    return childel
+  }
+  function render (data) {
+    function whenselected (data) {
+      parent.update(render(data))
+    }
+    var parent = bel`<ul>${child(data, whenselected)}</ul>`
+    return parent
+  }
+  var result = render('before')
+  document.body.appendChild(result)
+  t.equal(result.textContent, 'before')
+
+  document.querySelector('li').click()
+  setTimeout(function () {
+    t.equal(document.querySelector('li').textContent, 'data from child 1')
+    document.querySelector('li').click()
+    setTimeout(function () {
+      t.equal(document.querySelector('li').textContent, 'data from child 2')
+      document.body.innerHTML = ''
+      t.end()
+    }, 100)
+  }, 100)
+})
+
 test('using class and className', function (t) {
   t.plan(2)
   var result = bel`<div className="test1"></div>`
