@@ -17,6 +17,10 @@
     "element",
     "diffhtml"
   ],
+  "files": [
+    "index.js",
+    "create.js"
+  ],
   "author": "Kyle Robinson Young <kyle@dontkry.com> (http://dontkry.com)",
   "license": "MIT",
   "bugs": {
