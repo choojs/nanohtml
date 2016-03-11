@@ -1,4 +1,5 @@
 var document = require('global/document')
+var hyperx = require('hyperx')
 
 var SVGNS = 'http://www.w3.org/2000/svg'
 var BOOL_PROPS = {
@@ -30,7 +31,7 @@ var SVG_TAGS = [
   'tspan', 'use', 'view', 'vkern'
 ]
 
-module.exports = function belCreateElement (tag, props, children) {
+module.exports = hyperx(function bel (tag, props, children) {
   var el
 
   // If an svg tag, it needs a namespace
@@ -108,4 +109,4 @@ module.exports = function belCreateElement (tag, props, children) {
   appendChild(children)
 
   return el
-}
+})

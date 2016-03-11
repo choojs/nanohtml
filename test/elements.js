@@ -1,6 +1,5 @@
 var test = require('tape')
-var hyperx = require('hyperx')
-var bel = hyperx(require('../'))
+var bel = require('../')
 
 test('create inputs', function (t) {
   t.plan(5)
