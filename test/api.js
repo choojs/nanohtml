@@ -1,6 +1,6 @@
 var test = require('tape')
-var document = require('global/document')
-var bel = require('../')
+var hyperx = require('hyperx')
+var bel = hyperx(require('../'))
 
 test('creates an element', function (t) {
   t.plan(3)
@@ -17,92 +17,6 @@ test('creates an element', function (t) {
   t.equal(result.tagName, 'UL')
   t.equal(result.querySelector('button').textContent, 'click me')
   button.click()
-})
-
-test('update', function (t) {
-  t.plan(2)
-  document.body.innerHTML = ''
-
-  function render (data) {
-    return bel`<strong>${data}</strong>`
-  }
-  var result = render('before')
-  document.body.appendChild(result)
-
-  var changed = render('after')
-  result = result.update(changed)
-
-  t.equal(result.tagName, 'STRONG', 'element was updated')
-  t.equal(result.textContent, 'after', 'element was updated')
-
-  document.body.innerHTML = ''
-  t.end()
-})
-
-test('update with child elements', function (t) {
-  t.plan(3)
-  document.body.innerHTML = ''
-
-  function child (data) {
-    var childel = bel`<li onclick=${function () {
-      childel.update(child('changed by child'))
-    }}>${data}</li>`
-    return childel
-  }
-  function render (data) {
-    return bel`<ul>${child(data)}</ul>`
-  }
-  var result = render('before')
-  document.body.appendChild(result)
-
-  t.equal(result.textContent, 'before')
-
-  var changed = render('changed')
-  result = result.update(changed)
-
-  t.equal(result.textContent, 'changed')
-
-  document.querySelector('li').click()
-
-  t.equal(result.textContent, 'changed by child')
-
-  document.body.innerHTML = ''
-  t.end()
-})
-
-test('update with child sending actions up', function (t) {
-  t.plan(3)
-  document.body.innerHTML = ''
-  var i = 0
-
-  function child (data, onselected) {
-    var childel = bel`<li onclick=${function () {
-      i++
-      onselected('data from child ' + i)
-    }}>${data}</li>`
-    return childel
-  }
-  function render (data) {
-    function whenselected (data) {
-      parent.update(render(data))
-    }
-    var parent = bel`<ul>${child(data, whenselected)}</ul>`
-    return parent
-  }
-  var result = render('before')
-  document.body.appendChild(result)
-  t.equal(result.textContent, 'before')
-
-  document.querySelector('li').click()
-  setTimeout(function () {
-    t.equal(document.querySelector('li').textContent, 'data from child 1')
-    document.querySelector('li').click()
-    setTimeout(function () {
-      t.equal(document.querySelector('li').textContent, 'data from child 2')
-      document.body.innerHTML = ''
-      t.end()
-    }, 100)
-  }, 100)
 })
 
 test('using class and className', function (t) {

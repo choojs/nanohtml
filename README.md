@@ -18,7 +18,8 @@ Create an element:
 
 ```js
 // list.js
-var bel = require('bel')
+var hyperx = require('hyperx')
+var bel = hyperx(require('bel'))
 
 module.exports = function (items) {
   return bel`<ul>
@@ -46,7 +47,8 @@ document.body.appendChild(list)
 
 ```js
 // list.js
-var bel = require('bel')
+var hyperx = require('hyperx')
+var bel = hyperx(require('bel'))
 
 // The DOM is built by the data passed in
 module.exports = function (items, onselected) {
@@ -70,14 +72,16 @@ module.exports = function (items, onselected) {
 
 ```js
 // app.js
-var bel = require('bel')
+var hyperx = require('hyperx')
+var bel = hyperx(require('bel'))
+var morphdom = require('morphdom')
 var list = require('./list.js')
 
 module.exports = function (bears) {
   function onselected (id) {
     // When a bear is selected, rerender with the newly selected item
     // This will use DOM diffing to render, sending the data back down again
-    element.update(render(id))
+    morphdom(element, render(id))
   }
   function render (selected) {
     return bel`<div className="app">

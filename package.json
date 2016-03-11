@@ -28,15 +28,13 @@
   },
   "homepage": "https://github.com/shama/bel",
   "dependencies": {
-    "dom-css": "^2.0.0",
-    "global": "^4.3.0",
-    "hyperx": "^2.0.1",
-    "morphdom": "^1.1.2"
+    "global": "^4.3.0"
   },
   "devDependencies": {
     "browser-process-hrtime": "^0.1.2",
     "browserify": "^13.0.0",
     "electron-prebuilt": "^0.36.9",
+    "hyperx": "^2.0.2",
     "standard": "^6.0.7",
     "tape": "^4.5.0",
     "testron": "^1.2.0",

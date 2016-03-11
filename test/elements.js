@@ -1,5 +1,6 @@
 var test = require('tape')
-var bel = require('../')
+var hyperx = require('hyperx')
+var bel = hyperx(require('../'))
 
 test('create inputs', function (t) {
   t.plan(5)
@@ -18,7 +19,7 @@ test('create inputs', function (t) {
 })
 
 test('can update and submit inputs', function (t) {
-  t.plan(3)
+  t.plan(2)
   document.body.innerHTML = ''
   var expected = 'testing'
   function render (data, onsubmit) {
@@ -30,97 +31,15 @@ test('can update and submit inputs', function (t) {
       }}>submit</button>
     </div>`
   }
-  var count = 0
   var result = render(expected, function onsubmit (newvalue) {
-    count++
-    if (count === 1) {
-      t.equal(newvalue, 'changed')
-      result.update(render('changed again'), onsubmit)
-      process.nextTick(function () {
-        document.querySelector('button').click()
-      })
-    } else {
-      t.equal(newvalue, 'changed again')
-      document.body.innerHTML = ''
-      t.end()
-    }
+    t.equal(newvalue, 'changed')
+    document.body.innerHTML = ''
+    t.end()
   })
   document.body.appendChild(result)
   t.equal(document.querySelector('input').value, expected, 'set the input correctly')
   document.querySelector('input').value = 'changed'
   document.querySelector('button').click()
-})
-
-test('create a loading app then replace it', function (t) {
-  t.plan(3)
-  document.body.innerHTML = ''
-  var time = 100
-
-  // Create a loading app
-  var app = bel`<div class="loading">
-    Loading...
-  </div>`
-  document.body.appendChild(app)
-
-  // Some time later, the app has loaded
-  setTimeout(function () {
-    var content = nestedElement(onaction)
-    app.update(template(content))
-  }, time * 1)
-
-  // Some time after that, a button is clicked
-  setTimeout(function () {
-    t.equal(document.querySelector('nav').textContent, 'NAV', 'Past loading state')
-    var buttons = document.querySelectorAll('button')
-    buttons[0].click()
-  }, time * 2)
-
-  // Then another button is clicked that replaces the app contents
-  setTimeout(function () {
-    var buttons = document.querySelectorAll('button')
-    t.equal(buttons[0].textContent, 'changed 1', 'Nested element button updated itself')
-    buttons[1].click()
-  }, time * 3)
-
-  // Finally we check that the app got updated
-  setTimeout(function () {
-    var page = document.querySelector('.page')
-    t.equal(page.textContent, 'PAGE!', 'Action from below updated the entire page')
-    document.body.innerHTML = ''
-    t.end()
-  }, time * 4)
-
-  // When we get an action from below
-  function onaction () {
-    var page = bel`<div class="page">PAGE!</div>`
-    app.update(template(page))
-  }
-
-  // Template for our app
-  function template (content) {
-    return bel`<article class="app">
-      <nav>NAV</nav>
-      <section class="content">${content}</section>
-    </article>`
-  }
-
-  // Some element we are nesting in our app that updates itself
-  function nestedElement (onselected) {
-    var element = render('first')
-    return element
-    function render (label) {
-      return bel`<div class="nested-element">
-        <h3>Header</h3>
-        ${button(label + ' 1', function () {
-          element.update(render('changed'))
-        })}
-        ${button(label + ' 2', onselected)}
-      </div>`
-    }
-    function button (label, onclick) {
-      return bel`<button onclick=${onclick}>${label}</button>`
-    }
-  }
 })
 
 test('svg', function (t) {
