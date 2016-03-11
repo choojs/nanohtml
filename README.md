@@ -18,8 +18,7 @@ Create an element:
 
 ```js
 // list.js
-var hyperx = require('hyperx')
-var bel = hyperx(require('bel'))
+var bel = require('bel')
 
 module.exports = function (items) {
   return bel`<ul>
@@ -47,8 +46,7 @@ document.body.appendChild(list)
 
 ```js
 // list.js
-var hyperx = require('hyperx')
-var bel = hyperx(require('bel'))
+var bel = require('bel')
 
 // The DOM is built by the data passed in
 module.exports = function (items, onselected) {
@@ -72,8 +70,7 @@ module.exports = function (items, onselected) {
 
 ```js
 // app.js
-var hyperx = require('hyperx')
-var bel = hyperx(require('bel'))
+var bel = require('bel')
 var morphdom = require('morphdom')
 var list = require('./list.js')
 
