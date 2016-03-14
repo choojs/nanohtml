@@ -31,7 +31,7 @@ var SVG_TAGS = [
   'tspan', 'use', 'view', 'vkern'
 ]
 
-module.exports = hyperx(function bel (tag, props, children) {
+function belCreateElement (tag, props, children) {
   var el
 
   // If an svg tag, it needs a namespace
@@ -109,4 +109,7 @@ module.exports = hyperx(function bel (tag, props, children) {
   appendChild(children)
 
   return el
-})
+}
+
+module.exports = hyperx(belCreateElement)
+module.exports.createElement = belCreateElement
