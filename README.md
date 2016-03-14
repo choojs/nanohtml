@@ -92,6 +92,24 @@ module.exports = function (bears) {
 }
 ```
 
+### use with/without [hyperx](https://www.npmjs.com/package/hyperx)
+
+`hyperx` is built into `bel` but there may be times when you wish to use your
+own version or implementation of `hyperx`. Or if you prefer to create elements
+using `bel` without using tagged template literals:
+
+```js
+var createElement = require('bel').createElement
+var hyperx = require('hyperx')
+var bel = hyperx(createElement)
+
+var element = bel`<div class="heading">Hello!</div>`
+
+// ...
+
+var sameElement = createElement('div', { className: 'heading' }, ['Hello!'])
+```
+
 ## similar projects
 
 * [vel](https://github.com/yoshuawuyts/vel)  
