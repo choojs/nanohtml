@@ -50,3 +50,12 @@ test('svg', function (t) {
   t.equal(result.childNodes[1].tagName, 'rect', 'created child rect tag')
   t.end()
 })
+
+test('style', function (t) {
+  t.plan(2)
+  var name = 'test'
+  var result = bel`<h1 style="color: red">Hey ${name.toUpperCase()}, <span style="color: blue">This</span> is a card!!!</h1>`
+  t.equal(result.style.color, 'red', 'set style color on parent')
+  t.equal(result.querySelector('span').style.color, 'blue', 'set style color on child')
+  t.end()
+})
