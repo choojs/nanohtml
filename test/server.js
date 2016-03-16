@@ -22,3 +22,13 @@ test('passing another element to bel on server side render', function (t) {
   t.ok(result.indexOf('<button>click</button>') !== -1, 'button rendered correctly')
   t.end()
 })
+
+// TODO: https://github.com/Raynos/min-document/issues/36
+test.skip('style attribute', function (t) {
+  t.plan(1)
+  var name = 'test'
+  var result = bel`<h1 style="color: red">Hey ${name.toUpperCase()}, <span style="color: blue">This</span> is a card!!!</h1>`
+  var expected = '<h1 style="color: red">Hey TEST, <span style="color: blue">This</span> is a card!!!</h1>'
+  t.equal(result.toString(), expected)
+  t.end()
+})
