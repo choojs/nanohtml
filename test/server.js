@@ -11,3 +11,14 @@ test('server side render', function (t) {
   t.ok(result.indexOf('<div class="testing">') !== -1, 'attribute gets set')
   t.end()
 })
+
+test('passing another element to bel on server side render', function (t) {
+  t.plan(1)
+  var button = bel`<button>click</button>`
+  var element = bel`<div class="testing">
+    ${button}
+  </div>`
+  var result = element.toString()
+  t.ok(result.indexOf('<button>click</button>') !== -1, 'button rendered correctly')
+  t.end()
+})
