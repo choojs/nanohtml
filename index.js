@@ -101,7 +101,7 @@ function belCreateElement (tag, props, children) {
         node = document.createTextNode(node)
       }
 
-      if (node && node.nodeName && node.nodeType) {
+      if (node && node.nodeType) {
         el.appendChild(node)
       }
     }

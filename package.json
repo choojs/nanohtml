@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "wzrd test/index.js:bundle.js",
-    "test": "standard && browserify test/index.js | testron",
+    "test": "standard && node test/server.js && browserify test/index.js | testron",
     "bench": "wzrd bench/index.js:bundle.js"
   },
   "repository": {
