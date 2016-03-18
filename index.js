@@ -98,6 +98,10 @@ function belCreateElement (tag, props, children) {
       }
 
       if (typeof node === 'string') {
+        if (el.lastChild && el.lastChild.nodeName === '#text') {
+          el.lastChild.nodeValue += node
+          continue
+        }
         node = document.createTextNode(node)
       }
 

@@ -59,3 +59,13 @@ test('style', function (t) {
   t.equal(result.querySelector('span').style.color, 'blue', 'set style color on child')
   t.end()
 })
+
+test('adjacent text nodes', function (t) {
+  t.plan(2)
+  var who = 'world'
+  var exclamation = ['!', ' :)']
+  var result = bel`<div>hello ${who}${exclamation}</div>`
+  t.equal(result.childNodes.length, 1, 'should be merged')
+  t.equal(result.outerHTML, '<div>hello world! :)</div>', 'should have correct output')
+  t.end()
+})
