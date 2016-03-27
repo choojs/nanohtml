@@ -29,6 +29,18 @@ module.exports = function (items) {
 }
 ```
 
+Or create an element without using template literals:
+
+```js
+// list.js
+var bel = require('bel/create-element')
+
+module.exports = function (items) {
+  return bel('ul', items.map(item => bel('li', item)))
+}
+```
+
+
 Then pass data to it and add to the DOM:
 
 ```js
@@ -41,6 +53,7 @@ var list = createList([
 ])
 document.body.appendChild(list)
 ```
+
 
 ### Data Down, Actions Up
 
