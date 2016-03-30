@@ -1,6 +1,6 @@
 {
   "name": "bel",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "A simple extension to native elements",
   "main": "index.js",
   "scripts": {
