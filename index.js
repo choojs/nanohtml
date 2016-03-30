@@ -24,7 +24,7 @@ var SVG_TAGS = [
   'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting',
   'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face',
   'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri',
-  'foreignObject', 'glyph', 'glyphRef', 'hkern', 'image', 'line',
+  'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line',
   'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath',
   'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect',
   'set', 'stop', 'switch', 'symbol', 'text', 'textPath', 'title', 'tref',
