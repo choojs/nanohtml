@@ -51,6 +51,29 @@ test('svg', function (t) {
   t.end()
 })
 
+test('svg more complex', function (t) {
+  t.plan(1)
+  function create () {
+    return bel`
+      <svg id="Layer_2" data-name="Layer 2" viewBox="0 0 471.04 220.45">
+        <defs>
+          <filter id="dropshadow" height="130%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+            <feOffset dx="2" dy="2" result="offsetblur"/>
+            <feMerge>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <title>Untitled</title>
+        <polygon points="469.85 110.23 234.61 219.9 1.17 110.97 233.45 0.55 469.85 110.23"/>
+        <polyline points="196.68 75 185.68 118.57 200.01 102.52 189.34 150.67"/>
+      </svg>
+    `
+  }
+  t.doesNotThrow(create)
+})
+
 test('style', function (t) {
   t.plan(2)
   var name = 'test'
