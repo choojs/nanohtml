@@ -8,6 +8,10 @@
 
 A simple library for composable DOM elements using [tagged template strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
 
+If you're looking for a higher level front end framework, try
+[yo-yo](https://github.com/maxogden/yo-yo). Or even higher than that, try
+[choo](https://github.com/yoshuawuyts/choo).
+
 ## usage
 
 For a more in depth tutorial on getting started, please [check out the wiki](https://github.com/shama/bel/wiki).
