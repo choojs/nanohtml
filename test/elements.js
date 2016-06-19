@@ -69,3 +69,13 @@ test('adjacent text nodes', function (t) {
   t.equal(result.outerHTML, '<div>hello world! :)</div>', 'should have correct output')
   t.end()
 })
+
+test('for attribute is set correctly', function (t) {
+  t.plan(1)
+  var result = bel`<div>
+    <input type="file" name="file" id="heyo" />
+    <label for="heyo">label</label>
+  </div>`
+  t.ok(result.outerHTML.indexOf('<label for="heyo">label</label>') !== -1, 'contains for="heyo"')
+  t.end()
+})
