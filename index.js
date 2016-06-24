@@ -2,6 +2,8 @@ var document = require('global/document')
 var hyperx = require('hyperx')
 
 var SVGNS = 'http://www.w3.org/2000/svg'
+var XLINKNS = 'http://www.w3.org/1999/xlink'
+
 var BOOL_PROPS = {
   autofocus: 1,
   checked: 1,
@@ -77,7 +79,11 @@ function belCreateElement (tag, props, children) {
         el[p] = val
       } else {
         if (ns) {
-          el.setAttributeNS(null, p, val)
+          if (p === 'xlink:href') {
+            el.setAttributeNS(XLINKNS, p, val)
+          } else {
+            el.setAttributeNS(null, p, val)
+          }
         } else {
           el.setAttribute(p, val)
         }
