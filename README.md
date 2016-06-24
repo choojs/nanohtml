@@ -104,9 +104,9 @@ is inserted and removed from the DOM respectively.
 ```js
 var bel = require('bel')
 
-var modal = bel`<div onload=${function () {
+var modal = bel`<div onload=${function (element) {
   console.log('Hello DOM!')
-}} onunload=${function () {
+}} onunload=${function (element) {
   console.log('Goodbye DOM!')
 }}>hello!</div>`
 
