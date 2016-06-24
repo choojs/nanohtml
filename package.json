@@ -29,7 +29,8 @@
   "homepage": "https://github.com/shama/bel",
   "dependencies": {
     "global": "^4.3.0",
-    "hyperx": "^2.0.2"
+    "hyperx": "^2.0.2",
+    "on-load": "^2.1.1"
   },
   "devDependencies": {
     "browser-process-hrtime": "^0.1.2",

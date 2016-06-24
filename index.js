@@ -1,5 +1,6 @@
 var document = require('global/document')
 var hyperx = require('hyperx')
+var onload = require('on-load')
 
 var SVGNS = 'http://www.w3.org/2000/svg'
 var BOOL_PROPS = {
@@ -51,6 +52,19 @@ function belCreateElement (tag, props, children) {
     el = document.createElementNS(ns, tag)
   } else {
     el = document.createElement(tag)
+  }
+
+  // If adding onload events
+  if (props.onload || props.onunload) {
+    var load = props.onload
+    var unload = props.onunload
+    onload(el, function bel_onload () {
+      load(el)
+    }, function bel_onunload () {
+      unload(el)
+    })
+    delete props.onload
+    delete props.onunload
   }
 
   // Create the properties
