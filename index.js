@@ -56,8 +56,8 @@ function belCreateElement (tag, props, children) {
 
   // If adding onload events
   if (props.onload || props.onunload) {
-    var load = props.onload
-    var unload = props.onunload
+    var load = props.onload || function () {}
+    var unload = props.onunload || function () {}
     onload(el, function bel_onload () {
       load(el)
     }, function bel_onunload () {
