@@ -2,16 +2,16 @@ var test = require('tape')
 var bel = require('../')
 var document = require('global/document')
 
-test('first onload and unload events', function (t) {
+test('fire onload and unload events', function (t) {
   t.plan(2)
-  var el = bel`<div onload=${function () {
+  var element = bel`<div onload=${function (el) {
     t.equal(el.textContent, 'hi', 'fired onload')
-  }} onunload=${function () {
+  }} onunload=${function (el) {
     t.equal(el.textContent, 'hi', 'fired onunload')
     t.end()
   }}>hi</div>`
   var result = bel`<div>
-    ${el}
+    ${element}
   </div>`
   document.body.appendChild(result)
   document.body.removeChild(result)
