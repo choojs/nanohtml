@@ -96,6 +96,24 @@ module.exports = function (bears) {
 }
 ```
 
+### lifecycle events
+
+Use the `onload` and `onunload` properties to call a function when the element
+is inserted and removed from the DOM respectively.
+
+```js
+var bel = require('bel')
+
+var modal = bel`<div onload=${function (element) {
+  console.log('Hello DOM!')
+}} onunload=${function (element) {
+  console.log('Goodbye DOM!')
+}}>hello!</div>`
+
+document.body.appendChild(modal)
+document.body.removeChild(modal)
+```
+
 ### use with/without [hyperx](https://www.npmjs.com/package/hyperx)
 
 `hyperx` is built into `bel` but there may be times when you wish to use your
