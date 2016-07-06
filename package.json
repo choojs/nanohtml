@@ -30,12 +30,13 @@
   "dependencies": {
     "global": "^4.3.0",
     "hyperx": "^2.0.2",
-    "on-load": "^3.0.0"
+    "on-load": "^3.1.1"
   },
   "devDependencies": {
     "browser-process-hrtime": "^0.1.2",
     "browserify": "^13.0.0",
     "electron-prebuilt": "^0.36.9",
+    "morphdom": "^1.4.5",
     "standard": "^6.0.7",
     "tape": "^4.6.0",
     "testron": "^1.2.0",
