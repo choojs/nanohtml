@@ -30,7 +30,7 @@
   "dependencies": {
     "global": "^4.3.0",
     "hyperx": "^2.0.2",
-    "on-load": "^3.1.1"
+    "on-load": "^3.2.0"
   },
   "devDependencies": {
     "browser-process-hrtime": "^0.1.2",

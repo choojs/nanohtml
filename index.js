@@ -62,7 +62,7 @@ function belCreateElement (tag, props, children) {
       load(el)
     }, function bel_onunload () {
       unload(el)
-    })
+    }, belCreateElement.caller.caller.caller)
     delete props.onload
     delete props.onunload
   }
