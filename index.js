@@ -12,6 +12,7 @@ var BOOL_PROPS = {
   indeterminate: 1,
   readonly: 1,
   required: 1,
+  selected: 1,
   willvalidate: 1
 }
 var SVG_TAGS = [
