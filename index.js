@@ -64,8 +64,7 @@ function belCreateElement (tag, props, children) {
     }, function bel_onunload () {
       unload(el)
     },
-    // We have to use non-standard `caller` to find who invokes `belCreateElement`
-    belCreateElement.caller.caller.caller)
+    load.toString() + unload.toString())
     delete props.onload
     delete props.onunload
   }

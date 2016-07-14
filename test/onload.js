@@ -45,3 +45,27 @@ test('onload with nested existing elements', function (t) {
     }, 10)
   }, 10)
 })
+
+test('onload with same element origin', function (t) {
+  t.plan(2)
+  function button1 () {
+    return bel`<button onload=${function () {
+      t.ok(true, 'button1 fired onload')
+    }}>hi</button>`
+  }
+  function button2 () {
+    return bel`<button onload=${function () {
+      t.ok(true, 'button2 fired onload')
+    }}>hi</button>`
+  }
+  var root = button1()
+  document.body.appendChild(root)
+  setTimeout(function () {
+    // This should not fire onload again
+    morphdom(root, button1())
+    setTimeout(function () {
+      // But this one should fire button2 onload
+      morphdom(root, button2())
+    }, 10)
+  }, 10)
+})
