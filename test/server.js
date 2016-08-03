@@ -23,8 +23,7 @@ test('passing another element to bel on server side render', function (t) {
   t.end()
 })
 
-// TODO: https://github.com/Raynos/min-document/issues/36
-test.skip('style attribute', function (t) {
+test('style attribute', function (t) {
   t.plan(1)
   var name = 'test'
   var result = bel`<h1 style="color: red">Hey ${name.toUpperCase()}, <span style="color: blue">This</span> is a card!!!</h1>`
