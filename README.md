@@ -132,6 +132,10 @@ var element = bel`<div class="heading">Hello!</div>`
 var sameElement = createElement('div', { className: 'heading' }, ['Hello!'])
 ```
 
+## security
+
+bel sets attributes with `element.setAttribute()` and `element.setAttributeNS()`, and creates text nodes with `document.createTextNode()`.  These approaches mitigate some [Cross-Site Scripting (XSS)](https://www.owasp.org/index.php/Cross-site_Scripting_%28XSS%29) attacks.  You should still code carefully every time you put content from users in the DOM.
+
 ## similar projects
 
 * [vel](https://github.com/yoshuawuyts/vel)  
