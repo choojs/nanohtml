@@ -2,7 +2,6 @@ var document = require('global/document')
 var hyperx = require('hyperx')
 var onload = require('on-load')
 
-var SVGNS = 'http://www.w3.org/2000/svg'
 var BOOL_PROPS = {
   autofocus: 1,
   checked: 1,
@@ -15,31 +14,9 @@ var BOOL_PROPS = {
   selected: 1,
   willvalidate: 1
 }
-var SVG_TAGS = [
-  'svg',
-  'altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor',
-  'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile',
-  'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix',
-  'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting',
-  'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB',
-  'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode',
-  'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting',
-  'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face',
-  'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri',
-  'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line',
-  'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath',
-  'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect',
-  'set', 'stop', 'switch', 'symbol', 'text', 'textPath', 'title', 'tref',
-  'tspan', 'use', 'view', 'vkern'
-]
 
 function belCreateElement (tag, props, children) {
   var el
-
-  // If an svg tag, it needs a namespace
-  if (SVG_TAGS.indexOf(tag) !== -1) {
-    props.namespace = SVGNS
-  }
 
   // If we are using a namespace
   var ns = false
@@ -49,11 +26,7 @@ function belCreateElement (tag, props, children) {
   }
 
   // Create the element
-  if (ns) {
-    el = document.createElementNS(ns, tag)
-  } else {
-    el = document.createElement(tag)
-  }
+  el = document.createElement(tag)
 
   // If adding onload events
   if (props.onload || props.onunload) {
@@ -93,11 +66,7 @@ function belCreateElement (tag, props, children) {
       if (key.slice(0, 2) === 'on') {
         el[p] = val
       } else {
-        if (ns) {
-          el.setAttributeNS(null, p, val)
-        } else {
-          el.setAttribute(p, val)
-        }
+        el.setAttribute(p, val)
       }
     }
   }
