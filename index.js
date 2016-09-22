@@ -59,9 +59,9 @@ function belCreateElement (tag, props, children) {
   if (props.onload || props.onunload) {
     var load = props.onload || function () {}
     var unload = props.onunload || function () {}
-    onload(el, function bel_onload () {
+    onload(el, function belOnload () {
       load(el)
-    }, function bel_onunload () {
+    }, function belOnunload () {
       unload(el)
     },
     // We have to use non-standard `caller` to find who invokes `belCreateElement`
