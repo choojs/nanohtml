@@ -16,6 +16,19 @@ If you're looking for a higher level front end framework, try
 
 For a more in depth tutorial on getting started, please [check out the wiki](https://github.com/shama/bel/wiki).
 
+## note
+
+Please use [yo-yoify](https://github.com/shama/yo-yoify) which will transform any `Function.caller` into plain strings until an alternative solution to identify element creators is implemented.
+
+yo-yoify can resolve the error like below:
+
+`TypeError: Function.caller used to retrieve strict caller`
+
+or
+
+`TypeError: access to strict mode caller function is censored`
+
+
 ### A Simple Element
 
 Create an element:
