@@ -143,4 +143,5 @@ function belCreateElement (tag, props, children) {
 }
 
 module.exports = hyperx(belCreateElement)
+module.exports.default = module.exports
 module.exports.createElement = belCreateElement
