@@ -98,6 +98,8 @@ function belCreateElement (tag, props, children) {
         if (ns) {
           if (p === 'xlink:href') {
             el.setAttributeNS(XLINKNS, p, val)
+          } else if (/^xmlns($|:)/i.test(p)) {
+            // skip xmlns definitions
           } else {
             el.setAttributeNS(null, p, val)
           }
