@@ -66,6 +66,19 @@ test('svg with namespace', function (t) {
   t.equal(result.childNodes[1].tagName, 'rect', 'created child rect tag')
 })
 
+test('svg with xmlns:svg', function (t) {
+  t.plan(3)
+  var result
+  function create () {
+    result = bel`<svg width="150" height="100" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 3 2">
+      <rect width="1" height="2" x="0" fill="#008d46" />
+    </svg>`
+  }
+  t.doesNotThrow(create)
+  t.equal(result.tagName, 'svg', 'create svg tag')
+  t.equal(result.childNodes[1].tagName, 'rect', 'created child rect tag')
+})
+
 test('style', function (t) {
   t.plan(2)
   var name = 'test'
