@@ -17,7 +17,7 @@ var BOOL_PROPS = {
   selected: 1,
   willvalidate: 1
 }
-var COMMENT_TAG = '!--';
+var COMMENT_TAG = '!--'
 var SVG_TAGS = [
   'svg',
   'altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor',

@@ -79,6 +79,12 @@ test('svg with xmlns:svg', function (t) {
   t.equal(result.childNodes[1].tagName, 'rect', 'created child rect tag')
 })
 
+test('comments', function (t) {
+  var result = bel`<div><!-- this is a comment --></div>`
+  t.equal(result.outerHTML, '<div><!-- this is a comment --></div>', 'created comment')
+  t.end()
+})
+
 test('style', function (t) {
   t.plan(2)
   var name = 'test'
