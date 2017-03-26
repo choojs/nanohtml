@@ -17,6 +17,7 @@ var BOOL_PROPS = {
   selected: 1,
   willvalidate: 1
 }
+var COMMENT_TAG = '!--'
 var SVG_TAGS = [
   'svg',
   'altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor',
@@ -53,6 +54,8 @@ function belCreateElement (tag, props, children) {
   // Create the element
   if (ns) {
     el = document.createElementNS(ns, tag)
+  } else if (tag === COMMENT_TAG) {
+    return document.createComment(props.comment)
   } else {
     el = document.createElement(tag)
   }
@@ -144,6 +147,6 @@ function belCreateElement (tag, props, children) {
   return el
 }
 
-module.exports = hyperx(belCreateElement)
+module.exports = hyperx(belCreateElement, {comments: true})
 module.exports.default = module.exports
 module.exports.createElement = belCreateElement
