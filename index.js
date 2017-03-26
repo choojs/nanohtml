@@ -124,6 +124,7 @@ function belCreateElement (tag, props, children) {
 
       if (typeof node === 'number' ||
         typeof node === 'boolean' ||
+        typeof node === 'function' ||
         node instanceof Date ||
         node instanceof RegExp) {
         node = node.toString()
