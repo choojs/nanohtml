@@ -131,6 +131,7 @@ function belCreateElement (tag, props, children) {
       }
 
       if (typeof node === 'string') {
+        if (/^[\n\r\s]+$/.test(node)) continue
         if (el.lastChild && el.lastChild.nodeName === '#text') {
           el.lastChild.nodeValue += node
           continue
