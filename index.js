@@ -80,6 +80,7 @@ function belCreateElement (tag, props, children) {
     if (props.hasOwnProperty(p)) {
       var key = p.toLowerCase()
       var val = props[p]
+      var valType = typeof val
       // Normalize className
       if (key === 'classname') {
         key = 'class'
@@ -95,7 +96,7 @@ function belCreateElement (tag, props, children) {
         else if (val === 'false') continue
       }
       // If a property prefers being set directly vs setAttribute
-      if (key.slice(0, 2) === 'on') {
+      if (key.slice(0, 2) === 'on' || (valType === 'object' || valType === 'function')) {
         el[p] = val
       } else {
         if (ns) {

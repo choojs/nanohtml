@@ -113,3 +113,16 @@ test('for attribute is set correctly', function (t) {
   t.ok(result.outerHTML.indexOf('<label for="heyo">label</label>') !== -1, 'contains for="heyo"')
   t.end()
 })
+
+test('object and function properties are set directly', function (t) {
+  t.plan(5)
+  var foo = 'lol'
+  var bar = { a: 1 }
+  var baz = function () { return 'woah' }
+  var result = bel`<div foo=${foo} bar=${bar} baz=${baz}></div>`
+  t.equal(result.getAttribute('foo'), foo, 'string property set as attribute')
+  t.notOk(result.foo, 'string property not set directly')
+  t.equal(result.bar, bar, 'object property set directly')
+  t.equal(result.baz, baz, 'function property set directly')
+  t.equal(result.baz(), 'woah', 'function property evaluates')
+})
