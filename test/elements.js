@@ -113,3 +113,12 @@ test('for attribute is set correctly', function (t) {
   t.ok(result.outerHTML.indexOf('<label for="heyo">label</label>') !== -1, 'contains for="heyo"')
   t.end()
 })
+
+test('allow objects to be passed', function (t) {
+  t.plan(1)
+  var result = bel`<div>
+    <div ${{ foo: 'bar' }}>hey</div>
+  </div>`
+  t.ok(result.outerHTML.indexOf('<div foo="bar">hey</div>') !== -1, 'contains foo="bar"')
+  t.end()
+})
