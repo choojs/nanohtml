@@ -48,8 +48,8 @@ test('svg', function (t) {
     <use xlink:href="#test" />
   </svg>`
   t.equal(result.tagName, 'svg', 'create svg tag')
-  t.equal(result.childNodes[0].tagName, 'rect', 'created child rect tag')
-  t.equal(result.childNodes[1].getAttribute('xlink:href'), '#test', 'created child use tag with xlink:href')
+  t.equal(result.childNodes[1].tagName, 'rect', 'created child rect tag')
+  t.equal(result.childNodes[3].getAttribute('xlink:href'), '#test', 'created child use tag with xlink:href')
   t.end()
 })
 
@@ -63,7 +63,7 @@ test('svg with namespace', function (t) {
   }
   t.doesNotThrow(create)
   t.equal(result.tagName, 'svg', 'create svg tag')
-  t.equal(result.childNodes[0].tagName, 'rect', 'created child rect tag')
+  t.equal(result.childNodes[1].tagName, 'rect', 'created child rect tag')
 })
 
 test('svg with xmlns:svg', function (t) {
@@ -76,7 +76,7 @@ test('svg with xmlns:svg', function (t) {
   }
   t.doesNotThrow(create)
   t.equal(result.tagName, 'svg', 'create svg tag')
-  t.equal(result.childNodes[0].tagName, 'rect', 'created child rect tag')
+  t.equal(result.childNodes[1].tagName, 'rect', 'created child rect tag')
 })
 
 test('comments', function (t) {
