@@ -131,12 +131,23 @@ function belCreateElement (tag, props, children) {
       }
 
       if (typeof node === 'string') {
-        if (/^[\n\r\s]+$/.test(node)) continue
-        if (el.lastChild && el.lastChild.nodeName === '#text') {
-          el.lastChild.nodeValue += node
+        // - if empty space, skip
+        // - if last node was a text node
+        //   - if current node is a newline, push a space
+        //   - else push the node value
+        // - else create a text node with the new text
+        if (/^[\r\s]+$/.test(node)) {
           continue
+        } else if (el.lastChild && el.lastChild.nodeName === '#text') {
+          if (/^[\n]+$/.test(node)) {
+            el.lastChild.nodeValue += ' '
+          } else {
+            el.lastChild.nodeValue += node
+          }
+          continue
+        } else {
+          node = document.createTextNode(node)
         }
-        node = document.createTextNode(node)
       }
 
       if (node && node.nodeType) {
