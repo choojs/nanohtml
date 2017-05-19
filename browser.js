@@ -1,6 +1,9 @@
 var hyperx = require('hyperx')
 var onload = require('on-load')
 
+var headRegex = /^\n[\s]+/
+var tailRegex = /\n[\s]+$/
+
 var SVGNS = 'http://www.w3.org/2000/svg'
 var XLINKNS = 'http://www.w3.org/1999/xlink'
 
@@ -143,18 +146,18 @@ function belCreateElement (tag, props, children) {
         if (i === len - 1) {
           hadText = false
           var value = lastChild.nodeValue
-            .replace(/^\n[\s]+/, '')
-            .replace(/\n[\s]+$/, '')
-          if (value) lastChild.nodeValue = value
+            .replace(headRegex, '')
+            .replace(tailRegex, '')
+          if (value !== '') lastChild.nodeValue = value
           else el.removeChild(lastChild)
         }
       } else if (node && node.nodeType) {
         if (hadText) {
           hadText = false
           var val = lastChild.nodeValue
-            .replace(/^\n[\s]+/, '')
-            .replace(/\n[\s]+$/, '')
-          if (val) lastChild.nodeValue = val
+            .replace(headRegex, '')
+            .replace(tailRegex, '')
+          if (val !== '') lastChild.nodeValue = val
           else el.removeChild(lastChild)
         }
         el.appendChild(node)
