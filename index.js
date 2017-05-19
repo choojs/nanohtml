@@ -1,6 +1,12 @@
 // See https://github.com/shuhei/pelo/issues/5
+var isElectron = require('is-electron')
+var browser = require('./browser')
 
-var Module = require('module')
+if (typeof window !== 'undefined' && isElectron()) {
+  module.exports = browser
+} else {
+  module.exports = stringify
+}
 
 function handleValue (value) {
   if (Array.isArray(value)) {
@@ -45,17 +51,3 @@ function stringify () {
   wrapper.__encoded = true
   return wrapper
 }
-
-function replace (moduleId) {
-  var originalRequire = Module.prototype.require
-  Module.prototype.require = function (id) {
-    if (id === moduleId) {
-      return stringify
-    } else {
-      return originalRequire.apply(this, arguments)
-    }
-  }
-}
-stringify.replace = replace
-
-module.exports = stringify
