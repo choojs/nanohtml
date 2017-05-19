@@ -1,6 +1,5 @@
 var test = require('tape')
 var bel = require('../')
-var document = require('global/document')
 var morphdom = require('morphdom')
 
 test('fire onload and unload events', function (t) {

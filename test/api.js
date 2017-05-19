@@ -3,18 +3,26 @@ var bel = require('../')
 
 test('creates an element', function (t) {
   t.plan(3)
-  var button = bel`<button onclick=${function () {
-    onselected('success')
-  }}>click me</button>`
-  var result = bel`<ul>
-    <li>${button}</li>
-  </ul>`
+  var button = bel`
+    <button onclick=${function () { onselected('success') }}>
+      click me
+    </button>
+  `
+
+  var result = bel`
+    <ul>
+      <li>${button}</li>
+    </ul>
+  `
+
   function onselected (result) {
     t.equal(result, 'success')
     t.end()
   }
+
   t.equal(result.tagName, 'UL')
   t.equal(result.querySelector('button').textContent, 'click me')
+
   button.click()
 })
 

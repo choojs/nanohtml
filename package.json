@@ -3,9 +3,10 @@
   "version": "4.6.1",
   "description": "A simple extension to native elements",
   "main": "index.js",
+  "browser": "browser.js",
   "scripts": {
     "start": "wzrd test/index.js:bundle.js",
-    "test": "standard && node test/server.js && browserify test/index.js | testron",
+    "test": "standard && node test/server.js && browserify test/index.js | tape-run",
     "bench": "wzrd bench/index.js:bundle.js"
   },
   "repository": {
@@ -17,10 +18,6 @@
     "element",
     "diffhtml"
   ],
-  "files": [
-    "index.js",
-    "create.js"
-  ],
   "author": "Kyle Robinson Young <kyle@dontkry.com> (http://dontkry.com)",
   "license": "MIT",
   "bugs": {
@@ -28,8 +25,8 @@
   },
   "homepage": "https://github.com/shama/bel",
   "dependencies": {
-    "global": "^4.3.0",
     "hyperx": "^2.3.0",
+    "is-electron": "^2.0.0",
     "on-load": "^3.2.0"
   },
   "devDependencies": {
@@ -39,7 +36,7 @@
     "morphdom": "^2.1.1",
     "standard": "^9.0.2",
     "tape": "^4.6.0",
-    "testron": "^1.2.0",
+    "tape-run": "^3.0.0",
     "wzrd": "^1.4.0"
   }
 }
