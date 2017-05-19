@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "wzrd test/index.js:bundle.js",
-    "test": "standard && node test/server.js && browserify test/index.js | testron",
+    "test": "standard && node test/server.js && browserify test/index.js | tape-run",
     "bench": "wzrd bench/index.js:bundle.js"
   },
   "repository": {
@@ -30,7 +30,8 @@
   "dependencies": {
     "global": "^4.3.0",
     "hyperx": "^2.3.0",
-    "on-load": "^3.2.0"
+    "on-load": "^3.2.0",
+    "tape-run": "^3.0.0"
   },
   "devDependencies": {
     "browser-process-hrtime": "^0.1.2",
@@ -39,7 +40,6 @@
     "morphdom": "^2.1.1",
     "standard": "^9.0.2",
     "tape": "^4.6.0",
-    "testron": "^1.2.0",
     "wzrd": "^1.4.0"
   }
 }

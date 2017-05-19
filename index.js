@@ -115,7 +115,8 @@ function belCreateElement (tag, props, children) {
 
   function appendChild (childs) {
     if (!Array.isArray(childs)) return
-    for (var i = 0; i < childs.length; i++) {
+    var hadText = false
+    for (var i = 0, len = childs.length; i < len; i++) {
       var node = childs[i]
       if (Array.isArray(node)) {
         appendChild(node)
@@ -130,27 +131,33 @@ function belCreateElement (tag, props, children) {
         node = node.toString()
       }
 
+      var lastChild = el.childNodes[el.childNodes.length - 1]
       if (typeof node === 'string') {
-        // - if empty space, skip
-        // - if last node was a text node
-        //   - if current node is a newline, push a space
-        //   - else push the node value
-        // - else create a text node with the new text
-        if (/^[\r\s]+$/.test(node)) {
-          continue
-        } else if (el.lastChild && el.lastChild.nodeName === '#text') {
-          if (/^[\n]+$/.test(node)) {
-            el.lastChild.nodeValue += ' '
-          } else {
-            el.lastChild.nodeValue += node
-          }
-          continue
+        hadText = true
+        if (lastChild && lastChild.nodeName === '#text') {
+          lastChild.nodeValue += node
         } else {
           node = document.createTextNode(node)
+          el.appendChild(node)
+          lastChild = node
         }
-      }
-
-      if (node && node.nodeType) {
+        if (i === len - 1) {
+          hadText = false
+          var value = lastChild.nodeValue
+            .replace(/^\n[\s]+/, '')
+            .replace(/\n[\s]+$/, '')
+          if (value) lastChild.nodeValue = value
+          else el.removeChild(lastChild)
+        }
+      } else if (node && node.nodeType) {
+        if (hadText) {
+          hadText = false
+          var val = lastChild.nodeValue
+            .replace(/^\n[\s]+/, '')
+            .replace(/\n[\s]+$/, '')
+          if (val) lastChild.nodeValue = val
+          else el.removeChild(lastChild)
+        }
         el.appendChild(node)
       }
     }
