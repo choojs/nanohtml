@@ -1,5 +1,4 @@
 var hyperx = require('hyperx')
-var onload = require('on-load')
 
 var headRegex = /^\n[\s]+/
 var tailRegex = /\n[\s]+$/
@@ -60,21 +59,6 @@ function belCreateElement (tag, props, children) {
     return document.createComment(props.comment)
   } else {
     el = document.createElement(tag)
-  }
-
-  // If adding onload events
-  if (props.onload || props.onunload) {
-    var load = props.onload || function () {}
-    var unload = props.onunload || function () {}
-    onload(el, function belOnload () {
-      load(el)
-    }, function belOnunload () {
-      unload(el)
-    },
-    // We have to use non-standard `caller` to find who invokes `belCreateElement`
-    belCreateElement.caller.caller.caller)
-    delete props.onload
-    delete props.onunload
   }
 
   // Create the properties
