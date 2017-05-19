@@ -2,7 +2,6 @@ var bench = require('./bench')
 var bel = require('../')
 var vdom = require('virtual-dom')
 var h = vdom.h
-var document = require('global/document')
 
 function raw (label, items) {
   var div = document.createElement('div')
