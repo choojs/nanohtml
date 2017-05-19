@@ -31,8 +31,7 @@
   "dependencies": {
     "hyperx": "^2.3.0",
     "on-load": "^3.2.0",
-    "pelo": "0.0.1",
-    "tape-run": "^3.0.0"
+    "pelo": "0.0.1"
   },
   "devDependencies": {
     "browser-process-hrtime": "^0.1.2",
@@ -41,6 +40,7 @@
     "morphdom": "^2.1.1",
     "standard": "^9.0.2",
     "tape": "^4.6.0",
+    "tape-run": "^3.0.0",
     "wzrd": "^1.4.0"
   }
 }
