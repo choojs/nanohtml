@@ -49,7 +49,7 @@ test('svg', function (t) {
   </svg>`
   t.equal(result.tagName, 'svg', 'create svg tag')
   t.equal(result.childNodes[0].tagName, 'rect', 'created child rect tag')
-  t.equal(result.childNodes[1].getAttribute('xlink:href'), '#test', 'created child use tag with xlink:href')
+  t.equal(result.childNodes[2].getAttribute('xlink:href'), '#test', 'created child use tag with xlink:href')
   t.end()
 })
 
@@ -101,6 +101,53 @@ test('adjacent text nodes', function (t) {
   var result = bel`<div>hello ${who}${exclamation}</div>`
   t.equal(result.childNodes.length, 1, 'should be merged')
   t.equal(result.outerHTML, '<div>hello world! :)</div>', 'should have correct output')
+  t.end()
+})
+
+test('space in only-child text nodes', function (t) {
+  t.plan(1)
+  var result = bel`
+    <span>
+      surrounding
+      newlines
+    </span>
+  `
+  t.equal(result.outerHTML, '<span>surrounding\n      newlines</span>', 'should remove extra space')
+  t.end()
+})
+
+test('space between text and non-text nodes', function (t) {
+  t.plan(1)
+  var result = bel`
+    <div>
+      <dfn>whitespace</dfn>
+      is empty
+    </div>
+  `
+  t.equal(result.outerHTML, '<div><dfn>whitespace</dfn> is empty</div>', 'should have correct output')
+  t.end()
+})
+
+test('space between non-text nodes', function (t) {
+  t.plan(1)
+  var result = bel`
+    <div>
+      <dfn>whitespace</dfn>
+      <em>is beautiful</em>
+    </div>
+  `
+  t.equal(result.outerHTML, '<div><dfn>whitespace</dfn> <em>is beautiful</em></div>', 'should have correct output')
+  t.end()
+})
+
+test('space in <pre>', function (t) {
+  t.plan(1)
+  var result = bel`
+    <pre>
+      whitespace is empty
+    </pre>
+  `
+  t.equal(result.outerHTML, '<pre>\n      whitespace is empty\n    </pre>', 'should preserve space')
   t.end()
 })
 

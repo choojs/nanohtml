@@ -1,7 +1,7 @@
 var hyperx = require('hyperx')
 
-var headRegex = /^\n[\s]+/
-var tailRegex = /\n[\s]+$/
+var leadingSpaceRegex = /^[\s]+/
+var trailingSpaceRegex = /[\s]+$/
 
 var SVGNS = 'http://www.w3.org/2000/svg'
 var XLINKNS = 'http://www.w3.org/1999/xlink'
@@ -127,20 +127,39 @@ function belCreateElement (tag, props, children) {
           el.appendChild(node)
           lastChild = node
         }
-        if (i === len - 1) {
+        // The current text node is the last child of its parent.
+        if (i === len - 1 && el.nodeName !== 'PRE') {
           hadText = false
-          var value = lastChild.nodeValue
-            .replace(headRegex, '')
-            .replace(tailRegex, '')
+          var value = i === 0
+            // If this text node is the first child of its parent and
+            // the only child of its parent, trim its leading spaces and
+            // trim its trailing spaces.
+            ? lastChild.nodeValue.trim()
+            // If this text node is the last child of its parent, but
+            // not the only child of its parent, collapse its leading
+            // spaces and trim its trailing spaces.
+            : lastChild.nodeValue
+                .replace(leadingSpaceRegex, ' ')
+                .replace(trailingSpaceRegex, '')
           if (value !== '') lastChild.nodeValue = value
           else el.removeChild(lastChild)
         }
       } else if (node && node.nodeType) {
-        if (hadText) {
+        // The current non-text node comes after a text node.
+        if (hadText && el.nodeName !== 'PRE') {
           hadText = false
-          var val = lastChild.nodeValue
-            .replace(headRegex, '')
-            .replace(tailRegex, '')
+          var val = i === 1
+            // If the prior text node is the first first of its parent,
+            // trim its leading spaces and collapse its trailing spaces.
+            ? lastChild.nodeValue
+              .replace(leadingSpaceRegex, '')
+              .replace(trailingSpaceRegex, ' ')
+            // If the prior text node is not the first child of its
+            // parent, collapse its leading spaces and collapse its
+            // trailing spaces.
+            : lastChild.nodeValue
+              .replace(leadingSpaceRegex, ' ')
+              .replace(trailingSpaceRegex, ' ')
           if (val !== '') lastChild.nodeValue = val
           else el.removeChild(lastChild)
         }
