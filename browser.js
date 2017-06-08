@@ -1,7 +1,7 @@
 var hyperx = require('hyperx')
 
-var headRegex = /^\n[\s]+/
-var tailRegex = /\n[\s]+$/
+var leadingSpaceRegex = /^\n[\s]+/
+var trailingSpaceRegex = /\n[\s]+$/
 
 var SVGNS = 'http://www.w3.org/2000/svg'
 var XLINKNS = 'http://www.w3.org/1999/xlink'
@@ -102,13 +102,18 @@ function belCreateElement (tag, props, children) {
 
   function appendChild (childs) {
     if (!Array.isArray(childs)) return
+    var prevNodeType = null
+    var nodeType = null
     var hadText = false
+
     for (var i = 0, len = childs.length; i < len; i++) {
       var node = childs[i]
       if (Array.isArray(node)) {
         appendChild(node)
         continue
       }
+
+      nodeType = node.nodeName
 
       if (typeof node === 'number' ||
         typeof node === 'boolean' ||
@@ -131,8 +136,8 @@ function belCreateElement (tag, props, children) {
         if (i === len - 1) {
           hadText = false
           var value = lastChild.nodeValue
-            .replace(headRegex, '')
-            .replace(tailRegex, '')
+            .replace(leadingSpaceRegex, '')
+            .replace(trailingSpaceRegex, '')
           if (value !== '') lastChild.nodeValue = value
           else el.removeChild(lastChild)
         }
@@ -140,13 +145,15 @@ function belCreateElement (tag, props, children) {
         if (hadText) {
           hadText = false
           var val = lastChild.nodeValue
-            .replace(headRegex, '')
-            .replace(tailRegex, '')
+            .replace(leadingSpaceRegex, '')
+            .replace(trailingSpaceRegex, '')
           if (val !== '') lastChild.nodeValue = val
           else el.removeChild(lastChild)
         }
         el.appendChild(node)
       }
+      prevNodeType = nodeType
+      console.log('prev', prevNodeType)
     }
   }
   appendChild(children)
