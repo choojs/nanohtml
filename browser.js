@@ -6,18 +6,19 @@ var tailRegex = /\n[\s]+$/
 var SVGNS = 'http://www.w3.org/2000/svg'
 var XLINKNS = 'http://www.w3.org/1999/xlink'
 
-var BOOL_PROPS = {
-  autofocus: 1,
-  checked: 1,
-  defaultchecked: 1,
-  disabled: 1,
-  formnovalidate: 1,
-  indeterminate: 1,
-  readonly: 1,
-  required: 1,
-  selected: 1,
-  willvalidate: 1
-}
+var BOOL_PROPS = [
+  'autofocus',
+  'checked',
+  'defaultchecked',
+  'disabled',
+  'formnovalidate',
+  'indeterminate',
+  'readonly',
+  'required',
+  'selected',
+  'willvalidate'
+]
+
 var COMMENT_TAG = '!--'
 var SVG_TAGS = [
   'svg',
@@ -76,7 +77,7 @@ function belCreateElement (tag, props, children) {
         p = 'for'
       }
       // If a property is boolean, set itself to the key
-      if (BOOL_PROPS[key]) {
+      if (BOOL_PROPS.indexOf(key) !== -1) {
         if (val === 'true') val = key
         else if (val === 'false') continue
       }
