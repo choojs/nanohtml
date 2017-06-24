@@ -119,24 +119,24 @@ test('space in only-child text nodes', function (t) {
 test('space between text and non-text nodes', function (t) {
   t.plan(1)
   var result = bel`
-    <div>
+    <p>
       <dfn>whitespace</dfn>
       is empty
-    </div>
+    </p>
   `
-  t.equal(result.outerHTML, '<div><dfn>whitespace</dfn> is empty</div>', 'should have correct output')
+  t.equal(result.outerHTML, '<p><dfn>whitespace</dfn> is empty</p>', 'should have correct output')
   t.end()
 })
 
 test('space between non-text nodes', function (t) {
   t.plan(1)
   var result = bel`
-    <div>
+    <p>
       <dfn>whitespace</dfn>
       <em>is beautiful</em>
-    </div>
+    </p>
   `
-  t.equal(result.outerHTML, '<div><dfn>whitespace</dfn> <em>is beautiful</em></div>', 'should have correct output')
+  t.equal(result.outerHTML, '<p><dfn>whitespace</dfn> <em>is beautiful</em></p>', 'should have correct output')
   t.end()
 })
 

@@ -1,4 +1,5 @@
 var hyperx = require('hyperx')
+var textElements = require('./lib/text-elements')
 
 var leadingSpaceRegex = /^\n[\s]+/
 var trailingSpaceRegex = /\n[\s]+$/
