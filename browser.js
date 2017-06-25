@@ -1,11 +1,24 @@
 var hyperx = require('hyperx')
-var textElements = require('./lib/text-elements')
 
-var leadingSpaceRegex = /^\n[\s]+/
-var trailingSpaceRegex = /\n[\s]+$/
+var trailingNewlineRegex = /\n[\s]+$/
+var leadingNewlineRegex = /^\n[\s]+/
+var trailingSpaceRegex = /[\s]+$/
+var leadingSpaceRegex = /^[\s]+/
+var multiSpaceRegex = /[\n\s]+/g
 
 var SVGNS = 'http://www.w3.org/2000/svg'
 var XLINKNS = 'http://www.w3.org/1999/xlink'
+
+var TEXT_ELEMENTS = [
+  'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'data', 'dfn', 'em', 'i',
+  'kbd', 'mark', 'q', 'rp', 'rt', 'rtc', 'ruby', 's', 'amp', 'small', 'span',
+  'strong', 'sub', 'sup', 'time', 'u', 'var', 'wbr'
+]
+
+var WHITESPACE_ELEMENTS = [
+  'code',
+  'pre'
+]
 
 var BOOL_PROPS = [
   'autofocus',
@@ -21,6 +34,7 @@ var BOOL_PROPS = [
 ]
 
 var COMMENT_TAG = '!--'
+
 var SVG_TAGS = [
   'svg',
   'altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor',
@@ -63,6 +77,8 @@ function belCreateElement (tag, props, children) {
     el = document.createElement(tag)
   }
 
+  var nodeName = el.nodeName.toLowerCase()
+
   // Create the properties
   for (var p in props) {
     if (props.hasOwnProperty(p)) {
@@ -101,11 +117,14 @@ function belCreateElement (tag, props, children) {
     }
   }
 
+  appendChild(children)
+  return el
+
   function appendChild (childs) {
     if (!Array.isArray(childs)) return
-    var prevNodeType = null
-    var nodeType = null
+
     var hadText = false
+    var value
 
     for (var i = 0, len = childs.length; i < len; i++) {
       var node = childs[i]
@@ -113,8 +132,6 @@ function belCreateElement (tag, props, children) {
         appendChild(node)
         continue
       }
-
-      nodeType = node.nodeName
 
       if (typeof node === 'number' ||
         typeof node === 'boolean' ||
@@ -125,41 +142,98 @@ function belCreateElement (tag, props, children) {
       }
 
       var lastChild = el.childNodes[el.childNodes.length - 1]
+
+      // Iterate over text nodes
       if (typeof node === 'string') {
         hadText = true
+
+        // If we already had text, append to the existing text
         if (lastChild && lastChild.nodeName === '#text') {
           lastChild.nodeValue += node
+
+        // We didn't have a text node yet, create one
         } else {
           node = document.createTextNode(node)
           el.appendChild(node)
           lastChild = node
         }
+
+        // If this is the last of the child nodes, make sure we close it out
+        // right
         if (i === len - 1) {
           hadText = false
-          var value = lastChild.nodeValue
-            .replace(leadingSpaceRegex, '')
-            .replace(trailingSpaceRegex, '')
-          if (value !== '') lastChild.nodeValue = value
-          else el.removeChild(lastChild)
+          // Trim the child text nodes if the current node isn't a
+          // node where whitespace matters.
+          if (TEXT_ELEMENTS.indexOf(nodeName) === -1 &&
+            WHITESPACE_ELEMENTS.indexOf(nodeName) === -1) {
+            value = lastChild.nodeValue
+              .replace(leadingNewlineRegex, '')
+              .replace(trailingSpaceRegex, '')
+              .replace(trailingNewlineRegex, '')
+              .replace(multiSpaceRegex, ' ')
+            if (value === '') {
+              el.removeChild(lastChild)
+            } else {
+              lastChild.nodeValue = value
+            }
+          } else if (WHITESPACE_ELEMENTS.indexOf(nodeName) === -1) {
+            // The very first node in the list should not have leading
+            // whitespace. Sibling text nodes should have whitespace if there
+            // was any.
+            if (i === 0) {
+              value = lastChild.nodeValue.replace(leadingNewlineRegex, '')
+            } else {
+              value = lastChild.nodeValue.replace(leadingNewlineRegex, ' ')
+            }
+            value = value
+              .replace(leadingSpaceRegex, ' ')
+              .replace(trailingSpaceRegex, '')
+              .replace(trailingNewlineRegex, '')
+              .replace(multiSpaceRegex, ' ')
+            lastChild.nodeValue = value
+          }
         }
+
+      // Iterate over DOM nodes
       } else if (node && node.nodeType) {
+        // If the last node was a text node, make sure it is properly closed out
         if (hadText) {
           hadText = false
-          var val = lastChild.nodeValue
-            .replace(leadingSpaceRegex, '')
-            .replace(trailingSpaceRegex, '')
-          if (val !== '') lastChild.nodeValue = val
-          else el.removeChild(lastChild)
+
+          // Trim the child text nodes if the current node isn't a
+          // node where whitespace matters.
+          if (TEXT_ELEMENTS.indexOf(nodeName) === -1 &&
+            WHITESPACE_ELEMENTS.indexOf(nodeName) === -1) {
+            value = lastChild.nodeValue
+              .replace(leadingNewlineRegex, '')
+              .replace(trailingNewlineRegex, '')
+              .replace(multiSpaceRegex, ' ')
+
+            // Remove empty text nodes, append otherwise
+            if (value === '') {
+              el.removeChild(lastChild)
+            } else {
+              lastChild.nodeValue = value
+            }
+          } else if (WHITESPACE_ELEMENTS.indexOf(nodeName) === -1) {
+            value = lastChild.nodeValue
+              .replace(leadingSpaceRegex, ' ')
+              .replace(leadingNewlineRegex, '')
+              .replace(trailingNewlineRegex, '')
+              .replace(multiSpaceRegex, ' ')
+            lastChild.nodeValue = value
+          }
         }
+
+        // Store the last nodename
+        var _nodeName = node.nodeName
+        if (_nodeName) nodeName = _nodeName.toLowerCase()
+
+        // Append the node to the DOM
         el.appendChild(node)
       }
-      prevNodeType = nodeType
-      console.log('prev', prevNodeType)
     }
   }
-  appendChild(children)
-
-  return el
 }
 
 module.exports = hyperx(belCreateElement, {comments: true})
