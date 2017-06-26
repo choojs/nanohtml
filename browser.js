@@ -9,46 +9,36 @@ var multiSpaceRegex = /[\n\s]+/g
 var SVGNS = 'http://www.w3.org/2000/svg'
 var XLINKNS = 'http://www.w3.org/1999/xlink'
 
-var TEXT_ELEMENTS = [
+var BOOL_PROPS = [
+  'autofocus', 'checked', 'defaultchecked', 'disabled', 'formnovalidate',
+  'indeterminate', 'readonly', 'required', 'selected', 'willvalidate'
+]
+
+var COMMENT_TAG = '!--'
+
+var TEXT_TAGS = [
   'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'data', 'dfn', 'em', 'i',
   'kbd', 'mark', 'q', 'rp', 'rt', 'rtc', 'ruby', 's', 'amp', 'small', 'span',
   'strong', 'sub', 'sup', 'time', 'u', 'var', 'wbr'
 ]
 
-var WHITESPACE_ELEMENTS = [
-  'code',
-  'pre'
+var CODE_TAGS = [
+  'code', 'pre'
 ]
-
-var BOOL_PROPS = [
-  'autofocus',
-  'checked',
-  'defaultchecked',
-  'disabled',
-  'formnovalidate',
-  'indeterminate',
-  'readonly',
-  'required',
-  'selected',
-  'willvalidate'
-]
-
-var COMMENT_TAG = '!--'
 
 var SVG_TAGS = [
-  'svg',
-  'altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor',
+  'svg', 'altGlyph', 'altGlyphDef', 'altGlyphItem', 'animate', 'animateColor',
   'animateMotion', 'animateTransform', 'circle', 'clipPath', 'color-profile',
   'cursor', 'defs', 'desc', 'ellipse', 'feBlend', 'feColorMatrix',
-  'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting',
-  'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB',
-  'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode',
-  'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting',
-  'feSpotLight', 'feTile', 'feTurbulence', 'filter', 'font', 'font-face',
-  'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri',
-  'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image', 'line',
-  'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph', 'mpath',
-  'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect',
+  'feComponentTransfer', 'feComposite', 'feConvolveMatrix',
+  'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood',
+  'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage',
+  'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight',
+  'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence', 'filter',
+  'font', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src',
+  'font-face-uri', 'foreignObject', 'g', 'glyph', 'glyphRef', 'hkern', 'image',
+  'line', 'linearGradient', 'marker', 'mask', 'metadata', 'missing-glyph',
+  'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialGradient', 'rect',
   'set', 'stop', 'switch', 'symbol', 'text', 'textPath', 'title', 'tref',
   'tspan', 'use', 'view', 'vkern'
 ]
@@ -124,7 +114,7 @@ function belCreateElement (tag, props, children) {
     if (!Array.isArray(childs)) return
 
     var hadText = false
-    var value
+    var value, leader
 
     for (var i = 0, len = childs.length; i < len; i++) {
       var node = childs[i]
@@ -164,8 +154,8 @@ function belCreateElement (tag, props, children) {
           hadText = false
           // Trim the child text nodes if the current node isn't a
           // node where whitespace matters.
-          if (TEXT_ELEMENTS.indexOf(nodeName) === -1 &&
-            WHITESPACE_ELEMENTS.indexOf(nodeName) === -1) {
+          if (TEXT_TAGS.indexOf(nodeName) === -1 &&
+            CODE_TAGS.indexOf(nodeName) === -1) {
             value = lastChild.nodeValue
               .replace(leadingNewlineRegex, '')
               .replace(trailingSpaceRegex, '')
@@ -176,16 +166,13 @@ function belCreateElement (tag, props, children) {
             } else {
               lastChild.nodeValue = value
             }
-          } else if (WHITESPACE_ELEMENTS.indexOf(nodeName) === -1) {
+          } else if (CODE_TAGS.indexOf(nodeName) === -1) {
             // The very first node in the list should not have leading
             // whitespace. Sibling text nodes should have whitespace if there
             // was any.
-            if (i === 0) {
-              value = lastChild.nodeValue.replace(leadingNewlineRegex, '')
-            } else {
-              value = lastChild.nodeValue.replace(leadingNewlineRegex, ' ')
-            }
-            value = value
+            leader = i === 0 ? '' : ' '
+            value = lastChild.nodeValue
+              .replace(leadingNewlineRegex, leader)
               .replace(leadingSpaceRegex, ' ')
               .replace(trailingSpaceRegex, '')
               .replace(trailingNewlineRegex, '')
@@ -201,9 +188,9 @@ function belCreateElement (tag, props, children) {
           hadText = false
 
           // Trim the child text nodes if the current node isn't a
-          // node where whitespace matters.
-          if (TEXT_ELEMENTS.indexOf(nodeName) === -1 &&
-            WHITESPACE_ELEMENTS.indexOf(nodeName) === -1) {
+          // text node or a code node
+          if (TEXT_TAGS.indexOf(nodeName) === -1 &&
+            CODE_TAGS.indexOf(nodeName) === -1) {
             value = lastChild.nodeValue
               .replace(leadingNewlineRegex, '')
               .replace(trailingNewlineRegex, '')
@@ -215,7 +202,9 @@ function belCreateElement (tag, props, children) {
             } else {
               lastChild.nodeValue = value
             }
-          } else if (WHITESPACE_ELEMENTS.indexOf(nodeName) === -1) {
+          // Trim the child nodes if the current node is not a node
+          // where all whitespace must be preserved
+          } else if (CODE_TAGS.indexOf(nodeName) === -1) {
             value = lastChild.nodeValue
               .replace(leadingSpaceRegex, ' ')
               .replace(leadingNewlineRegex, '')
