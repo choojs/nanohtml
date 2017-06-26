@@ -104,6 +104,53 @@ test('adjacent text nodes', function (t) {
   t.end()
 })
 
+test('space in only-child text nodes', function (t) {
+  t.plan(1)
+  var result = bel`
+    <span>
+      surrounding
+      newlines
+    </span>
+  `
+  t.equal(result.outerHTML, '<span>surrounding newlines</span>', 'should remove extra space')
+  t.end()
+})
+
+test('space between text and non-text nodes', function (t) {
+  t.plan(1)
+  var result = bel`
+    <p>
+      <dfn>whitespace</dfn>
+      is empty
+    </p>
+  `
+  t.equal(result.outerHTML, '<p><dfn>whitespace</dfn> is empty</p>', 'should have correct output')
+  t.end()
+})
+
+test('space between non-text nodes', function (t) {
+  t.plan(1)
+  var result = bel`
+    <p>
+      <dfn>whitespace</dfn>
+      <em>is beautiful</em>
+    </p>
+  `
+  t.equal(result.outerHTML, '<p><dfn>whitespace</dfn> <em>is beautiful</em></p>', 'should have correct output')
+  t.end()
+})
+
+test('space in <pre>', function (t) {
+  t.plan(1)
+  var result = bel`
+    <pre>
+      whitespace is empty
+    </pre>
+  `
+  t.equal(result.outerHTML, '<pre>\n      whitespace is empty\n    </pre>', 'should preserve space')
+  t.end()
+})
+
 test('for attribute is set correctly', function (t) {
   t.plan(1)
   var result = bel`<div>
