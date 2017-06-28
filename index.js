@@ -1,5 +1,5 @@
 if (typeof window !== 'undefined') {
   module.exports = require('./browser')
-} else 
+} else {
   module.exports = require('pelo')
 }
