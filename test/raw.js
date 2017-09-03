@@ -2,7 +2,7 @@ var test = require('tape')
 var bel = require('../')
 var raw = require('../raw')
 
-test('escape html', function (t) {
+test('unescape html', function (t) {
   t.plan(1)
 
   var expected = bel`<span>Hello there</span>`.toString()
