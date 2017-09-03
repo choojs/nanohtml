@@ -140,6 +140,27 @@ or
 
 bel sets attributes with `element.setAttribute()` and `element.setAttributeNS()`, and creates text nodes with `document.createTextNode()`.  These approaches mitigate some [Cross-Site Scripting (XSS)](https://www.owasp.org/index.php/Cross-site_Scripting_%28XSS%29) attacks.  You should still code carefully every time you put content from users in the DOM.
 
+## unescaping
+
+bel escapes `${values}` within template literals. Sometimes that is not desirable; for instance, when parsing a string with markdown, which returns HTML.
+
+To unescape values, use the `raw` method:
+
+```js
+var bel = require('bel')
+var raw = require('bel/raw')
+
+function example () {
+  var output = '<strong>hello there</strong>'
+  return bel`
+    <div>${raw(output)}</div>
+  `
+}
+
+```
+
+Make sure that you are sticking to the security suggestions above, and sanitize any input for malicious code before using `raw`.
+
 ## similar projects
 
 * [vel](https://github.com/yoshuawuyts/vel)

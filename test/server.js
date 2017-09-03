@@ -1,5 +1,6 @@
 var test = require('tape')
 var bel = require('../')
+var raw = require('../')
 
 test('server side render', function (t) {
   t.plan(2)
@@ -29,5 +30,15 @@ test('style attribute', function (t) {
   var result = bel`<h1 style="color: red">Hey ${name.toUpperCase()}, <span style="color: blue">This</span> is a card!!!</h1>`
   var expected = '<h1 style="color: red">Hey TEST, <span style="color: blue">This</span> is a card!!!</h1>'
   t.equal(result.toString(), expected)
+  t.end()
+})
+
+test('unescape html', function (t) {
+  t.plan(1)
+
+  var expected = '<span>Hello <strong>there</strong></span>'
+  var result = raw('<span>Hello <strong>there</strong></span>').toString()
+
+  t.equal(expected, result)
   t.end()
 })
