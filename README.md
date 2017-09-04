@@ -179,7 +179,7 @@ Make sure that you are sticking to the security suggestions above, and sanitize 
 [npm-url]: https://npmjs.org/package/bel
 [travis-image]: https://img.shields.io/travis/shama/bel/master.svg?style=flat-square
 [travis-url]: https://travis-ci.org/shama/bel
-[downloads-image]: http://img.shields.io/npm/dm/vel.svg?style=flat-square
+[downloads-image]: http://img.shields.io/npm/dm/bel.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/bel
 [standard-image]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square
 [standard-url]: https://github.com/feross/standard
