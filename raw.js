@@ -14,7 +14,8 @@ function rawCreateElement (tag) {
   }
 
   function server () {
-    var wrapper = String(tag)
+    // eslint-disable-next-line
+    var wrapper = new String(tag)
     wrapper.__encoded = true
     return wrapper
   }

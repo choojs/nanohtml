@@ -1,6 +1,6 @@
 var test = require('tape')
 var bel = require('../')
-var raw = require('../')
+var raw = require('../raw')
 
 test('server side render', function (t) {
   t.plan(2)
@@ -38,6 +38,16 @@ test('unescape html', function (t) {
 
   var expected = '<span>Hello <strong>there</strong></span>'
   var result = raw('<span>Hello <strong>there</strong></span>').toString()
+
+  t.equal(expected, result)
+  t.end()
+})
+
+test('unescape html inside bel', function (t) {
+  t.plan(1)
+
+  var expected = '<span>Hello <strong>there</strong></span>'
+  var result = bel`${raw('<span>Hello <strong>there</strong></span>')}`.toString()
 
   t.equal(expected, result)
   t.end()
