@@ -1,4 +1,4 @@
-var bel = require('.')
+var bel = require('../')
 
 function rawCreateElement (tag) {
   if (typeof window !== 'undefined') {
