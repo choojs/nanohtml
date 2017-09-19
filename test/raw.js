@@ -1,6 +1,6 @@
 var test = require('tape')
 var bel = require('../')
-var raw = require('../raw')
+var raw = require('../raw/raw')
 
 test('unescape html', function (t) {
   t.plan(1)

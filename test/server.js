@@ -1,6 +1,6 @@
 var test = require('tape')
 var bel = require('../')
-var raw = require('../raw')
+var raw = require('../raw/raw')
 
 test('server side render', function (t) {
   t.plan(2)
