@@ -1,5 +1,3 @@
-var bel = require('.')
-
 function rawCreateElement (tag) {
   if (typeof window !== 'undefined') {
     return browser()
@@ -8,7 +6,7 @@ function rawCreateElement (tag) {
   }
 
   function browser () {
-    var el = bel`<div></div>`
+    var el = document.createElement('div')
     el.innerHTML = tag
     return toArray(el.childNodes)
   }
