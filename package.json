@@ -27,7 +27,7 @@
   "dependencies": {
     "hyperx": "^2.3.0",
     "is-electron": "^2.0.0",
-    "pelo": "^0.0.3"
+    "pelo": "^0.0.4"
   },
   "devDependencies": {
     "browser-process-hrtime": "^0.1.2",
