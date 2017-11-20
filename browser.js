@@ -28,6 +28,12 @@ var SVG_TAGS = [
   'tspan', 'use', 'view', 'vkern'
 ]
 
+function dispatch (e) {
+  if (this[e.type]) {
+    this[e.type](e)
+  }
+}
+
 function belCreateElement (tag, props, children) {
   var el
 
@@ -57,6 +63,13 @@ function belCreateElement (tag, props, children) {
     if (props.hasOwnProperty(p)) {
       var key = p.toLowerCase()
       var val = props[p]
+      var type = key.slice(0, 2) === 'on' ? key.slice(2) : p
+      // Set events to the dispatch object
+      if (typeof val === 'function') {
+        el.events = el.events || {handleEvent: dispatch}
+        el.events[type] = val
+        el.addEventListener(type, el.events)
+      }
       // Normalize className
       if (key === 'classname') {
         key = 'class'
@@ -71,21 +84,16 @@ function belCreateElement (tag, props, children) {
         if (val === 'true') val = key
         else if (val === 'false') continue
       }
-      // If a property prefers being set directly vs setAttribute
-      if (key.slice(0, 2) === 'on') {
-        el[p] = val
-      } else {
-        if (ns) {
-          if (p === 'xlink:href') {
-            el.setAttributeNS(XLINKNS, p, val)
-          } else if (/^xmlns($|:)/i.test(p)) {
-            // skip xmlns definitions
-          } else {
-            el.setAttributeNS(null, p, val)
-          }
+      if (ns) {
+        if (p === 'xlink:href') {
+          el.setAttributeNS(XLINKNS, p, val)
+        } else if (/^xmlns($|:)/i.test(p)) {
+          // skip xmlns definitions
         } else {
-          el.setAttribute(p, val)
+          el.setAttributeNS(null, p, val)
         }
+      } else {
+        el.setAttribute(p, val)
       }
     }
   }
