@@ -1,15 +1,5 @@
 let test = require('tape')
 let bel = require('../')
-/* Note:
-Failing tests have been commented. They include the following:
-  onfocusin
-  onfocusout
-  ontouchcancel
-  ontouchend
-  ontouchmove
-  ontouchstart
-  onunload
-*/
 
 function raiseEvent (element, eventName) {
   let event = document.createEvent('Event')
@@ -227,7 +217,7 @@ test('should have onfocus events(html attribute) ', function (t) {
 
   t.equal(expectationMet, true, 'result was expected')
 })
-/* test('should have onfocusin events(html attribute) ', function (t) {
+test('should have onfocusin events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
   let res = bel`<input onfocusin=${pass}></input>`
@@ -240,8 +230,8 @@ test('should have onfocus events(html attribute) ', function (t) {
   }
 
   t.equal(expectationMet, true, 'result was expected')
-}) */
-/* test('should have onfocusout events(html attribute) ', function (t) {
+})
+test('should have onfocusout events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
   let res = bel`<input onfocusout=${pass}></input>`
@@ -254,7 +244,7 @@ test('should have onfocus events(html attribute) ', function (t) {
   }
 
   t.equal(expectationMet, true, 'result was expected')
-}) */
+})
 test('should have oninput events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
