@@ -73,7 +73,8 @@ function belCreateElement (tag, props, children) {
       }
       // If a property prefers being set directly vs setAttribute
       if (key.slice(0, 2) === 'on') {
-        el.addEventListener(key.slice(2), val)
+        if (typeof val !== 'function') el.addEventListener(key.slice(2), val)
+        el[p] = val
       } else {
         if (ns) {
           if (p === 'xlink:href') {
