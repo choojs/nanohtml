@@ -11,7 +11,7 @@ var TEXT_TAGS = [
 ]
 
 var CODE_TAGS = [
-  'code', 'pre'
+  'code', 'pre', 'textarea'
 ]
 
 module.exports = function appendChild (el, childs) {
