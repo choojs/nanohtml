@@ -151,6 +151,17 @@ test('space in <pre>', function (t) {
   t.end()
 })
 
+test('space in <textarea>', function (t) {
+  t.plan(1)
+  var result = bel`
+    <textarea> Whitespace at beginning 
+      middle
+      and end </textarea>
+  `
+  t.equal(result.outerHTML, '<textarea> Whitespace at beginning \n      middle\n      and end </textarea>', 'should preserve space')
+  t.end()
+})
+
 test('for attribute is set correctly', function (t) {
   t.plan(1)
   var result = bel`<div>
