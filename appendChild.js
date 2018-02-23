@@ -10,8 +10,8 @@ var TEXT_TAGS = [
   'strong', 'sub', 'sup', 'time', 'u', 'var', 'wbr'
 ]
 
-var CODE_TAGS = [
-  'code', 'pre'
+var VERBATIM_TAGS = [
+  'code', 'pre', 'textarea'
 ]
 
 module.exports = function appendChild (el, childs) {
@@ -61,7 +61,7 @@ module.exports = function appendChild (el, childs) {
         // Trim the child text nodes if the current node isn't a
         // node where whitespace matters.
         if (TEXT_TAGS.indexOf(nodeName) === -1 &&
-          CODE_TAGS.indexOf(nodeName) === -1) {
+          VERBATIM_TAGS.indexOf(nodeName) === -1) {
           value = lastChild.nodeValue
             .replace(leadingNewlineRegex, '')
             .replace(trailingSpaceRegex, '')
@@ -72,7 +72,7 @@ module.exports = function appendChild (el, childs) {
           } else {
             lastChild.nodeValue = value
           }
-        } else if (CODE_TAGS.indexOf(nodeName) === -1) {
+        } else if (VERBATIM_TAGS.indexOf(nodeName) === -1) {
           // The very first node in the list should not have leading
           // whitespace. Sibling text nodes should have whitespace if there
           // was any.
@@ -96,7 +96,7 @@ module.exports = function appendChild (el, childs) {
         // Trim the child text nodes if the current node isn't a
         // text node or a code node
         if (TEXT_TAGS.indexOf(nodeName) === -1 &&
-          CODE_TAGS.indexOf(nodeName) === -1) {
+          VERBATIM_TAGS.indexOf(nodeName) === -1) {
           value = lastChild.nodeValue
             .replace(leadingNewlineRegex, '')
             .replace(trailingNewlineRegex, '')
@@ -110,7 +110,7 @@ module.exports = function appendChild (el, childs) {
           }
         // Trim the child nodes if the current node is not a node
         // where all whitespace must be preserved
-        } else if (CODE_TAGS.indexOf(nodeName) === -1) {
+        } else if (VERBATIM_TAGS.indexOf(nodeName) === -1) {
           value = lastChild.nodeValue
             .replace(leadingSpaceRegex, ' ')
             .replace(leadingNewlineRegex, '')
