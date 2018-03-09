@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const babel = require('babel-core')
 const pify = require('pify')
-const yoyoify = require('../../lib/babel')
+const nanohtml = require('../../')
 
 const transformFixture = pify(babel.transformFile)
 const readExpected = pify(fs.readFile)
@@ -15,7 +15,7 @@ function testFixture (name, opts) {
 
     const actualPromise = transformFixture(path.join(__dirname, 'fixtures', `${name}.js`), {
       plugins: [
-        [yoyoify, opts || {}]
+        [nanohtml, opts || {}]
       ]
     })
     const expectedPromise = readExpected(path.join(__dirname, 'fixtures', `${name}.expected.js`), 'utf8')
