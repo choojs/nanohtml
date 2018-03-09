@@ -1,43 +1,63 @@
 {
-  "name": "bel",
-  "version": "5.1.7",
-  "description": "A simple extension to native elements",
-  "main": "index.js",
-  "browser": "browser.js",
+  "name": "nanohtml",
+  "description": "HTML template strings renderer for Node & Browsers.",
+  "repository": "choojs/nanohtml",
+  "version": "1.0.0",
   "scripts": {
-    "start": "wzrd test/index.js:bundle.js",
-    "test": "standard && node test/server.js && browserify test/index.js | tape-run",
-    "bench": "wzrd bench/index.js:bundle.js"
+    "start": "node .",
+    "test": "standard && node tests && browserify tests/index.js | tape-run"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/shama/bel"
-  },
-  "keywords": [
-    "virtual-dom",
-    "element",
-    "diffhtml"
-  ],
-  "author": "Kyle Robinson Young <kyle@dontkry.com> (http://dontkry.com)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/shama/bel/issues"
-  },
-  "homepage": "https://github.com/shama/bel",
   "dependencies": {
-    "hyperx": "^2.3.0",
-    "is-electron": "^2.0.0",
-    "pelo": "^0.1.0"
+    "acorn": "^5.2.1",
+    "convert-source-map": "^1.5.1",
+    "hyperx": "^2.3.2",
+    "nanoassert": "^1.1.0",
+    "nanobench": "^2.1.0",
+    "through2": "^2.0.3",
+    "transform-ast": "^2.4.0"
   },
   "devDependencies": {
-    "browser-process-hrtime": "^0.1.2",
-    "browserify": "^14.4.0",
-    "electron": "^1.7.4",
-    "morphdom": "^2.3.3",
-    "standard": "^10.0.2",
-    "tape": "^4.7.0",
-    "tape-run": "^3.0.0",
-    "wzrd": "^1.4.0"
+    "babel-core": "^6.26.0",
+    "babel-plugin-transform-es2015-template-literals": "^6.22.0",
+    "babelify": "^8.0.0",
+    "browserify": "^16.1.1",
+    "bubleify": "^1.1.0",
+    "choo": "^6.9.0",
+    "standard": "^10.0.3",
+    "tape": "^4.8.0",
+    "tape-run": "^3.0.4"
   },
-  "types": "./bel.d.ts"
+  "keywords": [
+    "choo",
+    "node",
+    "html",
+    "template-string",
+    "strings",
+    "template",
+    "string",
+    "lit-html",
+    "yo-yo",
+    "choo.js",
+    "es6",
+    "HTML",
+    "DOM",
+    "diff",
+    "render",
+    "multi",
+    "line",
+    "tagged",
+    "native",
+    "hyperhtml",
+    "hyperdom",
+    "fast",
+    "small",
+    "lite",
+    "tiny",
+    "nano"
+  ],
+  "license": "Apache-2.0",
+  "browser": {
+    "assert": "nanoassert",
+    "./index.js": "./lib/browser.js"
+  }
 }

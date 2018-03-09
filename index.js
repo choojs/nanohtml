@@ -1,5 +1,3 @@
-if (typeof window !== 'undefined') {
-  module.exports = require('./browser')
-} else {
-  module.exports = require('pelo')
-}
+module.exports = typeof window !== 'undefined'
+  ? require('./lib/browser')
+  : require('./lib/server')
