@@ -166,9 +166,9 @@ test('for attribute is set correctly', function (t) {
   t.plan(1)
   var result = html`<div>
     <input type="file" name="file" id="heyo" />
-    <lahtml for="heyo">lahtml</lahtml>
+    <label for="heyo">label</label>
   </div>`
-  t.ok(result.outerHTML.indexOf('<lahtml for="heyo">lahtml</lahtml>') !== -1, 'contains for="heyo"')
+  t.ok(result.outerHTML.indexOf('<label for="heyo">label</label>') !== -1, 'contains for="heyo"')
   t.end()
 })
 
