@@ -3,4 +3,5 @@ if (typeof window !== 'undefined') {
 } else {
   require('./server')
   require('./transform')
+  require('./babel')
 }

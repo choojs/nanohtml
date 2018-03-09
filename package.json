@@ -10,20 +10,26 @@
   },
   "dependencies": {
     "acorn": "^5.2.1",
+    "camel-case": "^3.0.0",
     "convert-source-map": "^1.5.1",
     "hyperx": "^2.3.2",
+    "is-boolean-attribute": "0.0.1",
     "nanoassert": "^1.1.0",
     "nanobench": "^2.1.0",
+    "normalize-html-whitespace": "^0.2.0",
     "through2": "^2.0.3",
     "transform-ast": "^2.4.0"
   },
   "devDependencies": {
+    "aliasify": "^2.1.0",
     "babel-core": "^6.26.0",
     "babel-plugin-transform-es2015-template-literals": "^6.22.0",
+    "babel-register": "^6.26.0",
     "babelify": "^8.0.0",
     "browserify": "^16.1.1",
     "bubleify": "^1.1.0",
     "choo": "^6.9.0",
+    "pify": "^3.0.0",
     "standard": "^10.0.3",
     "tape": "^4.8.0",
     "tape-run": "^3.0.4"
