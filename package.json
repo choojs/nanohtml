@@ -6,8 +6,9 @@
   "types": "./types/index.d.ts",
   "scripts": {
     "bench": "node bench/server.js && browserify bench/client.js | tape-run",
-    "test": "standard && node tests && npm run test:browser && npm run test:babel-browser",
+    "test": "standard && node tests && npm run test:browser && npm run test:transform-browser && npm run test:babel-browser",
     "test:browser": "browserify tests/browser | tape-run",
+    "test:transform-browser": "node tests/transform/build | tape-run",
     "test:babel-browser": "node tests/babel/build | tape-run"
   },
   "dependencies": {
