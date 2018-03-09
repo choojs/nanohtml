@@ -6,7 +6,9 @@
   "types": "./types/index.d.ts",
   "scripts": {
     "bench": "node bench/server.js && browserify bench/client.js | tape-run",
-    "test": "standard && node tests && browserify tests/index.js | tape-run"
+    "test": "standard && node tests && npm run test:browser && npm run test:babel-browser",
+    "test:browser": "browserify tests/browser | tape-run",
+    "test:babel-browser": "node tests/babel/build | tape-run"
   },
   "dependencies": {
     "acorn": "^5.2.1",
@@ -66,5 +68,10 @@
   "browser": {
     "assert": "nanoassert",
     "./index.js": "./lib/browser.js"
+  },
+  "standard": {
+    "ignore": [
+      "tests/babel/fixtures/**/*.js"
+    ]
   }
 }
