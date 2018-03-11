@@ -86,7 +86,7 @@ wouldn't have been possible otherwise!
 - [choojs/nanomorph](https://github.com/choojs/nanomorph)
 
 ## License
-[Apache-2.0](./LICENSE)
+[MIT](./LICENSE)
 
 [0]: https://img.shields.io/badge/stability-experimental-orange.svg?style=flat-square
 [1]: https://nodejs.org/api/documentation.html#documentation_stability_index

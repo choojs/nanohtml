@@ -55,7 +55,7 @@
     "tiny",
     "nano"
   ],
-  "license": "Apache-2.0",
+  "license": "MIT",
   "browser": {
     "assert": "nanoassert",
     "./index.js": "./lib/browser.js"
