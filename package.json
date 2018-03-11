@@ -3,6 +3,7 @@
   "description": "HTML template strings renderer for Node & Browsers.",
   "repository": "choojs/nanohtml",
   "version": "1.0.0",
+  "types": "./types/index.d.ts",
   "scripts": {
     "start": "node .",
     "test": "standard && node tests && browserify tests/index.js | tape-run"
