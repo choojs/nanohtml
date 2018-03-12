@@ -62,11 +62,41 @@ document.body.appendChild(el)
 
 ## Static optimizations
 Parsing HTML has significant overhead. Being able to parse HTML statically,
-ahead of time can speed up rendering by about 2x.
+ahead of time can speed up rendering to be about twice as fast.
 
 ### Browserify
+
+#### From the command line
 ```sh
 $ browserify -t nanohtml index.js > bundle.js
+```
+
+#### Programmatically
+```js
+var browserify = require('browserify')
+var nanohtml = require('nanohtml')
+var path = require('path')
+
+var b = browserify(path.join(__dirname, 'index.js'))
+  .transform(nanohtml)
+
+b.bundle().pipe(process.stdout)
+```
+
+#### In package.json
+```json
+{
+  "name": "my-app",
+  "private": true,
+  "browserify": {
+    "transform": [
+      "nanohtml"
+    ]
+  },
+  "dependencies": {
+    "nanohtml": "^1.0.0"
+  }
+}
 ```
 
 ### Webpack
