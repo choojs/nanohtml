@@ -1,5 +1,6 @@
 let test = require('tape')
-let bel = require('../')
+var html = require('../../')
+
 /* Note:
 Failing tests have been commented. They include the following:
   onfocusin
@@ -20,7 +21,7 @@ function raiseEvent (element, eventName) {
 test('should have onabort events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onabort=${pass}></input>`
+  let res = html`<input onabort=${pass}></input>`
 
   raiseEvent(res, 'abort')
 
@@ -34,7 +35,7 @@ test('should have onabort events(html attribute) ', function (t) {
 test('should have onblur events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onblur=${pass}></input>`
+  let res = html`<input onblur=${pass}></input>`
 
   raiseEvent(res, 'blur')
 
@@ -48,7 +49,7 @@ test('should have onblur events(html attribute) ', function (t) {
 test('should have onchange events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onchange=${pass}></input>`
+  let res = html`<input onchange=${pass}></input>`
 
   raiseEvent(res, 'change')
 
@@ -62,7 +63,7 @@ test('should have onchange events(html attribute) ', function (t) {
 test('should have onclick events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onclick=${pass}></input>`
+  let res = html`<input onclick=${pass}></input>`
 
   raiseEvent(res, 'click')
 
@@ -76,7 +77,7 @@ test('should have onclick events(html attribute) ', function (t) {
 test('should have oncontextmenu events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input oncontextmenu=${pass}></input>`
+  let res = html`<input oncontextmenu=${pass}></input>`
 
   raiseEvent(res, 'contextmenu')
 
@@ -90,7 +91,7 @@ test('should have oncontextmenu events(html attribute) ', function (t) {
 test('should have ondblclick events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ondblclick=${pass}></input>`
+  let res = html`<input ondblclick=${pass}></input>`
 
   raiseEvent(res, 'dblclick')
 
@@ -104,7 +105,7 @@ test('should have ondblclick events(html attribute) ', function (t) {
 test('should have ondrag events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ondrag=${pass}></input>`
+  let res = html`<input ondrag=${pass}></input>`
 
   raiseEvent(res, 'drag')
 
@@ -118,7 +119,7 @@ test('should have ondrag events(html attribute) ', function (t) {
 test('should have ondragend events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ondragend=${pass}></input>`
+  let res = html`<input ondragend=${pass}></input>`
 
   raiseEvent(res, 'dragend')
 
@@ -132,7 +133,7 @@ test('should have ondragend events(html attribute) ', function (t) {
 test('should have ondragenter events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ondragenter=${pass}></input>`
+  let res = html`<input ondragenter=${pass}></input>`
 
   raiseEvent(res, 'dragenter')
 
@@ -146,7 +147,7 @@ test('should have ondragenter events(html attribute) ', function (t) {
 test('should have ondragleave events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ondragleave=${pass}></input>`
+  let res = html`<input ondragleave=${pass}></input>`
 
   raiseEvent(res, 'dragleave')
 
@@ -160,7 +161,7 @@ test('should have ondragleave events(html attribute) ', function (t) {
 test('should have ondragover events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ondragover=${pass}></input>`
+  let res = html`<input ondragover=${pass}></input>`
 
   raiseEvent(res, 'dragover')
 
@@ -174,7 +175,7 @@ test('should have ondragover events(html attribute) ', function (t) {
 test('should have ondragstart events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ondragstart=${pass}></input>`
+  let res = html`<input ondragstart=${pass}></input>`
 
   raiseEvent(res, 'dragstart')
 
@@ -188,7 +189,7 @@ test('should have ondragstart events(html attribute) ', function (t) {
 test('should have ondrop events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ondrop=${pass}></input>`
+  let res = html`<input ondrop=${pass}></input>`
 
   raiseEvent(res, 'drop')
 
@@ -202,7 +203,7 @@ test('should have ondrop events(html attribute) ', function (t) {
 test('should have onerror events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onerror=${pass}></input>`
+  let res = html`<input onerror=${pass}></input>`
 
   raiseEvent(res, 'error')
 
@@ -216,7 +217,7 @@ test('should have onerror events(html attribute) ', function (t) {
 test('should have onfocus events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onfocus=${pass}></input>`
+  let res = html`<input onfocus=${pass}></input>`
 
   raiseEvent(res, 'focus')
 
@@ -230,7 +231,7 @@ test('should have onfocus events(html attribute) ', function (t) {
 /* test('should have onfocusin events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onfocusin=${pass}></input>`
+  let res = html`<input onfocusin=${pass}></input>`
 
   raiseEvent(res, 'focusin')
 
@@ -244,7 +245,7 @@ test('should have onfocus events(html attribute) ', function (t) {
 /* test('should have onfocusout events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onfocusout=${pass}></input>`
+  let res = html`<input onfocusout=${pass}></input>`
 
   raiseEvent(res, 'focusout')
 
@@ -258,7 +259,7 @@ test('should have onfocus events(html attribute) ', function (t) {
 test('should have oninput events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input oninput=${pass}></input>`
+  let res = html`<input oninput=${pass}></input>`
 
   raiseEvent(res, 'input')
 
@@ -272,7 +273,7 @@ test('should have oninput events(html attribute) ', function (t) {
 test('should have onkeydown events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onkeydown=${pass}></input>`
+  let res = html`<input onkeydown=${pass}></input>`
 
   raiseEvent(res, 'keydown')
 
@@ -286,7 +287,7 @@ test('should have onkeydown events(html attribute) ', function (t) {
 test('should have onkeypress events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onkeypress=${pass}></input>`
+  let res = html`<input onkeypress=${pass}></input>`
 
   raiseEvent(res, 'keypress')
 
@@ -300,7 +301,7 @@ test('should have onkeypress events(html attribute) ', function (t) {
 test('should have onkeyup events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onkeyup=${pass}></input>`
+  let res = html`<input onkeyup=${pass}></input>`
 
   raiseEvent(res, 'keyup')
 
@@ -314,7 +315,7 @@ test('should have onkeyup events(html attribute) ', function (t) {
 test('should have onmousedown events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onmousedown=${pass}></input>`
+  let res = html`<input onmousedown=${pass}></input>`
 
   raiseEvent(res, 'mousedown')
 
@@ -328,7 +329,7 @@ test('should have onmousedown events(html attribute) ', function (t) {
 test('should have onmouseenter events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onmouseenter=${pass}></input>`
+  let res = html`<input onmouseenter=${pass}></input>`
 
   raiseEvent(res, 'mouseenter')
 
@@ -342,7 +343,7 @@ test('should have onmouseenter events(html attribute) ', function (t) {
 test('should have onmouseleave events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onmouseleave=${pass}></input>`
+  let res = html`<input onmouseleave=${pass}></input>`
 
   raiseEvent(res, 'mouseleave')
 
@@ -356,7 +357,7 @@ test('should have onmouseleave events(html attribute) ', function (t) {
 test('should have onmousemove events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onmousemove=${pass}></input>`
+  let res = html`<input onmousemove=${pass}></input>`
 
   raiseEvent(res, 'mousemove')
 
@@ -370,7 +371,7 @@ test('should have onmousemove events(html attribute) ', function (t) {
 test('should have onmouseout events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onmouseout=${pass}></input>`
+  let res = html`<input onmouseout=${pass}></input>`
 
   raiseEvent(res, 'mouseout')
 
@@ -384,7 +385,7 @@ test('should have onmouseout events(html attribute) ', function (t) {
 test('should have onmouseover events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onmouseover=${pass}></input>`
+  let res = html`<input onmouseover=${pass}></input>`
 
   raiseEvent(res, 'mouseover')
 
@@ -398,7 +399,7 @@ test('should have onmouseover events(html attribute) ', function (t) {
 test('should have onmouseup events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onmouseup=${pass}></input>`
+  let res = html`<input onmouseup=${pass}></input>`
 
   raiseEvent(res, 'mouseup')
 
@@ -412,7 +413,7 @@ test('should have onmouseup events(html attribute) ', function (t) {
 test('should have onreset events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onreset=${pass}></input>`
+  let res = html`<input onreset=${pass}></input>`
 
   raiseEvent(res, 'reset')
 
@@ -426,7 +427,7 @@ test('should have onreset events(html attribute) ', function (t) {
 test('should have onresize events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onresize=${pass}></input>`
+  let res = html`<input onresize=${pass}></input>`
 
   raiseEvent(res, 'resize')
 
@@ -440,7 +441,7 @@ test('should have onresize events(html attribute) ', function (t) {
 test('should have onscroll events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onscroll=${pass}></input>`
+  let res = html`<input onscroll=${pass}></input>`
 
   raiseEvent(res, 'scroll')
 
@@ -454,7 +455,7 @@ test('should have onscroll events(html attribute) ', function (t) {
 test('should have onselect events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onselect=${pass}></input>`
+  let res = html`<input onselect=${pass}></input>`
 
   raiseEvent(res, 'select')
 
@@ -468,7 +469,7 @@ test('should have onselect events(html attribute) ', function (t) {
 test('should have onsubmit events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input onsubmit=${pass}></input>`
+  let res = html`<input onsubmit=${pass}></input>`
 
   raiseEvent(res, 'submit')
 
@@ -482,7 +483,7 @@ test('should have onsubmit events(html attribute) ', function (t) {
 /* test('should have ontouchcancel events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ontouchcancel=${pass}></input>`
+  let res = html`<input ontouchcancel=${pass}></input>`
 
   raiseEvent(res, 'touchcancel')
 
@@ -496,7 +497,7 @@ test('should have onsubmit events(html attribute) ', function (t) {
 /* test('should have ontouchend events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ontouchend=${pass}></input>`
+  let res = html`<input ontouchend=${pass}></input>`
 
   raiseEvent(res, 'touchend')
 
@@ -510,7 +511,7 @@ test('should have onsubmit events(html attribute) ', function (t) {
 /* test('should have ontouchmove events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ontouchmove=${pass}></input>`
+  let res = html`<input ontouchmove=${pass}></input>`
 
   raiseEvent(res, 'touchmove')
 
@@ -524,7 +525,7 @@ test('should have onsubmit events(html attribute) ', function (t) {
 /* test('should have ontouchstart events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<input ontouchstart=${pass}></input>`
+  let res = html`<input ontouchstart=${pass}></input>`
 
   raiseEvent(res, 'touchstart')
 
@@ -538,7 +539,7 @@ test('should have onsubmit events(html attribute) ', function (t) {
 /* test('should have onunload events(html attribute) ', function (t) {
   t.plan(1)
   let expectationMet = false
-  let res = bel`<body onunload=${pass}></body>`
+  let res = html`<body onunload=${pass}></body>`
 
   raiseEvent(res, 'unload')
 
