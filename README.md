@@ -108,7 +108,7 @@ At the time of writing there's no Parcel plugin yet. We'd love a contribution!
 ## Attributions
 Shout out to [Shama](https://github.com/shama) and
 [Shuhei](https://github.com/shuhei) for their contributions to
-[Bel](https://github.com/shama/html),
+[Bel](https://github.com/shama/bel),
 [yo-yoify](https://github.com/shama/yo-yoify) and
 [pelo](https://github.com/shuhei/pelo). This module is based on their work, and
 wouldn't have been possible otherwise!
