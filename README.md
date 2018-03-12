@@ -2,7 +2,8 @@
 [![npm version][2]][3] [![build status][4]][5]
 [![downloads][8]][9] [![js-standard-style][10]][11]
 
-HTML template string rendering for Node & Browsers.
+HTML template strings for the Browser with support for Server Side
+Rendering in Node.
 
 ## Installation
 ```sh
