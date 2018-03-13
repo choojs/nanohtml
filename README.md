@@ -102,15 +102,13 @@ b.bundle().pipe(process.stdout)
 ### Webpack
 At the time of writing there's no Webpack loader yet. We'd love a contribution!
 
-### Parcel
-At the time of writing there's no Parcel plugin yet. We'd love a contribution!
+### Babel / Parcel
 
-### Babel
+Add nanohtml to your `.babelrc` config.
 
 Without options:
 
 ```js
-// .babelrc
 {
   "plugins": [
     "nanohtml"
@@ -121,11 +119,10 @@ Without options:
 With options:
 
 ```js
-// .babelrc
 {
   "plugins": [
-    ["yo-yoify", {
-      "nanohtml": true
+    ["nanohtml", {
+      "useImport": true
     }]
   ]
 }
