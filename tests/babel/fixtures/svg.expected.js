@@ -7,4 +7,4 @@ var _path,
 
 const svg = (_svg = document.createElementNS(_svgNamespace, 'svg'), _svg.setAttribute('viewBox', '0 14 32 18'), _appendChild(_svg, ['\n    ', (_path = document.createElementNS(_svgNamespace, 'path'), _path.setAttribute('d', 'M2 14 V18 H6 V14z'), _path), '\n  ']), _svg);
 
-const htmlAndSvg = (_div = document.createElement('div'), _appendChild(_div, ['\n    ', (_svg2 = document.createElementNS(_svgNamespace, 'svg'), _svg2.appendChild(document.createTextNode('\n  ')), _svg2), '\n']), _div);
+const htmlAndSvg = (_div = document.createElement('div'), _appendChild(_div, ['\n    ', (_svg2 = document.createElementNS(_svgNamespace, 'svg'), _appendChild(_svg2, ['\n  ']), _svg2), '\n']), _div);
