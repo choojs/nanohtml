@@ -480,7 +480,7 @@ test('should have onsubmit events(html attribute) ', function (t) {
 
   t.equal(expectationMet, true, 'result was expected')
 })
-/* test('should have ontouchcancel events(html attribute) ', function (t) {
+test('should have ontouchcancel events(html attribute) ', { skip: true }, function (t) {
   t.plan(1)
   let expectationMet = false
   let res = html`<input ontouchcancel=${pass}></input>`
@@ -493,8 +493,8 @@ test('should have onsubmit events(html attribute) ', function (t) {
   }
 
   t.equal(expectationMet, true, 'result was expected')
-}) */
-/* test('should have ontouchend events(html attribute) ', function (t) {
+})
+test('should have ontouchend events(html attribute) ', { skip: true }, function (t) {
   t.plan(1)
   let expectationMet = false
   let res = html`<input ontouchend=${pass}></input>`
@@ -507,8 +507,8 @@ test('should have onsubmit events(html attribute) ', function (t) {
   }
 
   t.equal(expectationMet, true, 'result was expected')
-}) */
-/* test('should have ontouchmove events(html attribute) ', function (t) {
+})
+test('should have ontouchmove events(html attribute) ', { skip: true }, function (t) {
   t.plan(1)
   let expectationMet = false
   let res = html`<input ontouchmove=${pass}></input>`
@@ -521,8 +521,8 @@ test('should have onsubmit events(html attribute) ', function (t) {
   }
 
   t.equal(expectationMet, true, 'result was expected')
-}) */
-/* test('should have ontouchstart events(html attribute) ', function (t) {
+})
+test('should have ontouchstart events(html attribute) ', { skip: true }, function (t) {
   t.plan(1)
   let expectationMet = false
   let res = html`<input ontouchstart=${pass}></input>`
@@ -535,8 +535,8 @@ test('should have onsubmit events(html attribute) ', function (t) {
   }
 
   t.equal(expectationMet, true, 'result was expected')
-}) */
-/* test('should have onunload events(html attribute) ', function (t) {
+})
+test('should have onunload events(html attribute) ', { skip: true }, function (t) {
   t.plan(1)
   let expectationMet = false
   let res = html`<body onunload=${pass}></body>`
@@ -549,4 +549,4 @@ test('should have onsubmit events(html attribute) ', function (t) {
   }
 
   t.equal(expectationMet, true, 'result was expected')
-}) */
+})

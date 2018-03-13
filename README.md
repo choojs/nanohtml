@@ -102,8 +102,38 @@ b.bundle().pipe(process.stdout)
 ### Webpack
 At the time of writing there's no Webpack loader yet. We'd love a contribution!
 
-### Parcel
-At the time of writing there's no Parcel plugin yet. We'd love a contribution!
+### Babel / Parcel
+
+Add nanohtml to your `.babelrc` config.
+
+Without options:
+
+```js
+{
+  "plugins": [
+    "nanohtml"
+  ]
+}
+```
+
+With options:
+
+```js
+{
+  "plugins": [
+    ["nanohtml", {
+      "useImport": true
+    }]
+  ]
+}
+```
+
+### Options
+
+ - `useImport` - Set to true to use `import` statements for injected modules.
+    By default, `require` is used. Enable this if you're using Rollup.
+ - `appendChildModule` - Import path to a module that contains an `appendChild`
+    function. Defaults to `"nanohtml/lib/append-child"`.
 
 ## Attributions
 Shout out to [Shama](https://github.com/shama) and
