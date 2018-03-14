@@ -11,6 +11,7 @@ $ npm install nanohtml
 ```
 
 ## Usage
+### Browser
 ```js
 var html = require('nanohtml')
 
@@ -23,7 +24,7 @@ var el = html`
 document.body.appendChild(el)
 ```
 
-## Node
+### Node
 Node doesn't have a DOM available. So in order to render HTML we use string
 concatenation instead. This has the fun benefit of being quite efficient, which
 in turn means it's great for server rendering!
@@ -40,7 +41,7 @@ var el = html`
 console.log(el.toString())
 ```
 
-## Interpolating unescaped HTML
+### Interpolating unescaped HTML
 By default all content inside template strings is escaped. This is great for
 strings, but not ideal if you want to insert HTML that's been returned from
 another function (for example: a markdown renderer). Use `nanohtml/raw` for
@@ -58,6 +59,26 @@ var el = html`
 `
 
 document.body.appendChild(el)
+```
+
+### Attaching event listeners
+```js
+var html = require('nanohtml')
+
+var string = '<h1>This a regular string.'
+var el = html`
+  <body>
+    <button onclick=${onclick}>
+      Click Me
+    </button>
+  </body>
+`
+
+document.body.appendChild(el)
+
+function onclick (e) {
+  console.log(`${e.target} was clicked`)
+}
 ```
 
 ## Static optimizations
@@ -128,7 +149,7 @@ With options:
 }
 ```
 
-### Options
+#### Options
 
  - `useImport` - Set to true to use `import` statements for injected modules.
     By default, `require` is used. Enable this if you're using Rollup.
@@ -157,7 +178,7 @@ wouldn't have been possible otherwise!
 [5]: https://travis-ci.org/choojs/nanohtml
 [6]: https://img.shields.io/codecov/c/github/choojs/nanohtml/master.svg?style=flat-square
 [7]: https://codecov.io/github/choojs/nanohtml
-[8]: http://img.shields.io/npm/dm/nanohtml.svg?style=flat-square
+[8]: http://img.shields.io/npm/dt/nanohtml.svg?style=flat-square
 [9]: https://npmjs.org/package/nanohtml
 [10]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square
 [11]: https://github.com/feross/standard
