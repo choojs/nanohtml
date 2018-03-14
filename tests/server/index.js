@@ -52,3 +52,43 @@ test('unescape html inside html', function (t) {
   t.equal(expected, result)
   t.end()
 })
+
+test('event attribute', function (t) {
+  t.plan(1)
+
+  var expected = '<div>Hello</div>'
+  var result = html`
+    <div onmouseover=${onmouseover} onmouseout="${onmouseout}">Hello</div>
+  `
+
+  t.equal(expected, result)
+  t.end()
+
+  function onmouseover () {}
+  function onmouseout () {}
+})
+
+test('boolean attribute', function (t) {
+  t.plan(1)
+
+  var expected = '<input disabled="disabled">'
+  var result = html`
+    <input disabled=${true} autofocus=${false}>
+  `
+
+  t.equal(expected, result)
+  t.end()
+})
+
+test('spread attributes', function (t) {
+  t.plan(1)
+
+  var expected = '<div class="abc" id="def">Hello</div>'
+  var props = { class: 'abc', id: 'def' }
+  var result = html`
+    <div ${props}>Hello</div>
+  `
+
+  t.equal(expected, result)
+  t.end()
+})
