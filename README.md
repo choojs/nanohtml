@@ -51,7 +51,7 @@ to interpolate HTML directly.
 var raw = require('nanohtml/raw')
 var html = require('nanohtml')
 
-var string = '<h1>This a regular string.'
+var string = '<h1>This a regular string.</h1>'
 var el = html`
   <body>
     ${raw(string)}
@@ -65,7 +65,6 @@ document.body.appendChild(el)
 ```js
 var html = require('nanohtml')
 
-var string = '<h1>This a regular string.'
 var el = html`
   <body>
     <button onclick=${onclick}>
