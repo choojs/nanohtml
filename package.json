@@ -26,7 +26,7 @@
     "camel-case": "^3.0.0",
     "convert-source-map": "^1.5.1",
     "estree-is-member-expression": "^1.0.0",
-    "hyperx": "^2.3.2",
+    "hyperx": "^2.5.0",
     "is-boolean-attribute": "0.0.1",
     "nanoassert": "^1.1.0",
     "nanobench": "^2.1.0",
