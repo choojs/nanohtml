@@ -86,3 +86,23 @@ test('spread attributes', function (t) {
   t.equal(result, expected)
   t.end()
 })
+
+test('multiple root elements', function (t) {
+  t.plan(1)
+
+  var expected = '<div>1</div><div>2</div>3<div>5</div>'
+  var result = html`<div>1</div><div>2</div>3<div>5</div>`.toString()
+
+  t.equal(expected, result)
+  t.end()
+})
+
+test('nested multiple root elements', function (t) {
+  t.plan(1)
+
+  var expected = '<div>1</div><div>2</div><div>3</div><div>4</div>'
+  var result = html`<div>1</div>${html`<div>2</div><div>3</div>`}<div>4</div>`.toString()
+
+  t.equal(expected, result)
+  t.end()
+})
