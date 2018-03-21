@@ -80,7 +80,8 @@
   "license": "MIT",
   "browser": {
     "assert": "nanoassert",
-    "./index.js": "./lib/browser.js"
+    "./index.js": "./lib/browser.js",
+    "./raw.js": "./lib/raw-browser.js"
   },
   "standard": {
     "ignore": [
