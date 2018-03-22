@@ -17,7 +17,7 @@ test('works', function (t) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
     var result = src.toString()
-    t.ok(result.indexOf('var bel = {}') !== -1, 'replaced bel dependency with {}')
+    t.ok(result.indexOf('var html = {}') !== -1, 'replaced html dependency with {}')
     t.ok(result.indexOf('document.createElement("h1")') !== -1, 'created an h1 tag')
     t.ok(result.indexOf('setAttribute("class", arguments[1])') !== -1, 'set a class attribute')
     t.end()
