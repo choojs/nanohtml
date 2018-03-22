@@ -7,7 +7,7 @@ var FIXTURE = path.join(__dirname, 'fixture.js')
 
 test('works', function (t) {
   t.plan(4)
-  var src = 'var bel = require(\'bel\')\n  module.exports = function (data) {\n    var className = \'test\'\n    return bel`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  module.exports = function (data) {\n    var className = \'test\'\n    return html`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     browserField: false,
@@ -26,7 +26,7 @@ test('works', function (t) {
 
 test('strings + template expressions', function (t) {
   t.plan(2)
-  var src = 'var bel = require(\'bel\')\n  var className = \'test\'\n  var el = bel`<div class="before ${className} after"><div>`' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  var className = \'test\'\n  var el = html`<div class="before ${className} after"><div>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     browserField: false,
@@ -43,7 +43,7 @@ test('strings + template expressions', function (t) {
 
 test('append children in the correct order', function (t) {
   t.plan(2)
-  var src = 'var bel = require(\'bel\')\n  var el = bel`<div>This is a <a href="#">test</a> to ensure <strong>strings</strong> get appended in the correct order.</div>`' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  var el = html`<div>This is a <a href="#">test</a> to ensure <strong>strings</strong> get appended in the correct order.</div>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     browserField: false,
@@ -61,7 +61,7 @@ test('append children in the correct order', function (t) {
 
 test('multiple values on single attribute', function (t) {
   t.plan(4)
-  var src = 'var bel = require(\'bel\')\n  var a = \'testa\'\n  var b = \'testb\'\n  bel`<div class="${a} ${b}">`' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  var a = \'testa\'\n  var b = \'testb\'\n  html`<div class="${a} ${b}">`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
@@ -79,7 +79,7 @@ test('multiple values on single attribute', function (t) {
 
 test('svg', function (t) {
   t.plan(2)
-  var src = 'var bel = require(\'bel\')\n  var el = bel`<svg><line /></svg>`' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  var el = html`<svg><line /></svg>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     browserField: false,
@@ -96,7 +96,7 @@ test('svg', function (t) {
 
 test('xlink:href', function (t) {
   t.plan(2)
-  var src = 'var bel = require(\'bel\')\n  var el = bel`<use xlink:href=\'#cat\'/>`' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  var el = html`<use xlink:href=\'#cat\'/>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     browserField: false,
@@ -114,7 +114,7 @@ test('xlink:href', function (t) {
 
 test('choo and friends', function (t) {
   t.plan(3)
-  var src = 'const choo = require(\'choo\')\n  const bel = require(\'bel\')\n  const el1 = choo.view`<button>choo choo</button>`\n  const el2 = bel`<button>bel bel</button>`' // eslint-disable-line
+  var src = 'const choo = require(\'choo\')\n  const html = require(\'nanohtml\')\n  const el1 = choo.view`<button>choo choo</button>`\n  const el2 = html`<button>bel bel</button>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
@@ -130,7 +130,7 @@ test('choo and friends', function (t) {
 })
 
 test('emits error for syntax error', function (t) {
-  var src = 'var bel = require(\'bel\')\n  module.exports = function (data) {\n    var className = (\'test\' + ) // <--- HERE\'S A SYNTAX ERROR\n    return bel`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  module.exports = function (data) {\n    var className = (\'test\' + ) // <--- HERE\'S A SYNTAX ERROR\n    return html`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     browserField: false,
@@ -144,7 +144,7 @@ test('emits error for syntax error', function (t) {
 
 test('works with newer js', function (t) {
   t.plan(1)
-  var src = 'const bel = require(\'bel\')\n async function whatever() {\n return bel`<div>yep</div>`\n }' // eslint-disable-line
+  var src = 'const html = require(\'nanohtml\')\n async function whatever() {\n return html`<div>yep</div>`\n }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
@@ -158,7 +158,7 @@ test('works with newer js', function (t) {
 
 test('boolean attribute expression', function (t) {
   t.plan(1)
-  var src = 'const bel = require(\'bel\')\n async function whatever() {\nvar b = "disabled"\nreturn bel`<input type="text" ${b}>`\n }' // eslint-disable-line
+  var src = 'const html = require(\'nanohtml\')\n async function whatever() {\nvar b = "disabled"\nreturn html`<input type="text" ${b}>`\n }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
@@ -173,9 +173,9 @@ test('boolean attribute expression', function (t) {
 test('babel-compiled template literals', function (t) {
   t.plan(3)
   fs.writeFileSync(FIXTURE, `
-    var bel = require('bel')
+    var html = require('nanohtml')
 
-    bel\`<div class="whatever \${abc}">\${xyz}</div>\`
+    html\`<div class="whatever \${abc}">\${xyz}</div>\`
   `)
   var b = browserify(FIXTURE, {
     transform: [
@@ -198,9 +198,9 @@ test('buble-compiled template literals', function (t) {
   t.plan(2)
 
   fs.writeFileSync(FIXTURE, `
-    var bel = require('bel')
+    var html = require('nanohtml')
 
-    bel\`<div class="whatever \${abc}">\${xyz}</div>\`
+    html\`<div class="whatever \${abc}">\${xyz}</div>\`
   `)
 
   var b = browserify(FIXTURE, {
@@ -224,7 +224,7 @@ test('buble-compiled template literals', function (t) {
 test('generates source maps in debug mode', function (t) {
   t.plan(2)
   fs.writeFileSync(FIXTURE, `
-    var html = require('bel')
+    var html = require('nanohtml')
     var el = html\`<span>title</span>\`
     html\`
       <header>
@@ -248,7 +248,7 @@ test('generates source maps in debug mode', function (t) {
 test('accepts input source maps in debug mode', function (t) {
   t.plan(2)
   fs.writeFileSync(FIXTURE, `
-    var html = require('bel')
+    var html = require('nanohtml')
     var el = html\`<span>title</span>\`
     html\`
       <header>

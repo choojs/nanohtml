@@ -1,5 +1,5 @@
-import bel from 'bel'
+import html from 'nanohtml'
 
-bel`
+html`
   <div id="a${1} b${2}">
 `

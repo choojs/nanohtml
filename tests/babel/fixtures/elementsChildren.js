@@ -1,9 +1,9 @@
-import bel from 'bel'
+import html from 'nanohtml'
 
-const child = bel`
+const child = html`
   <h1>Page header</h1>
 `
 
-const header = bel`
+const header = html`
   <header>${child}</header>
 `

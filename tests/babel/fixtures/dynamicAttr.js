@@ -1,19 +1,19 @@
-var bel = require('bel')
+var html = require('nanohtml')
 
 var handler = isTouchDevice ? 'ontouchstart' : 'onmousedown'
 
-bel`
+html`
   <div id="halp" ${handler}=${() => {}} />
 `
 
 var className = 'className'
-bel`
+html`
   <div id="str" ${className}="blub" />
 `
 
 var x = 'disabled'
-bel`
+html`
   <button ${x} id="lol" />
 `
 x = ''
-bel`<button ${x} id="abc" />`
+html`<button ${x} id="abc" />`
