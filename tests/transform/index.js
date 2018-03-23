@@ -1,6 +1,5 @@
 var test = require('tape')
 var browserify = require('browserify')
-var pathmodify = require('pathmodify')
 var fs = require('fs')
 var path = require('path')
 
@@ -11,14 +10,9 @@ test('works', function (t) {
   var src = 'var html = require(\'nanohtml\')\n  module.exports = function (data) {\n    var className = \'test\'\n    return html`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
-    browserField: false,
     transform: path.join(__dirname, '../../')
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
@@ -35,14 +29,9 @@ test('strings + template expressions', function (t) {
   var src = 'var html = require(\'nanohtml\')\n  var className = \'test\'\n  var el = html`<div class="before ${className} after"><div>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
-    browserField: false,
     transform: path.join(__dirname, '../../')
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
@@ -57,14 +46,9 @@ test('append children in the correct order', function (t) {
   var src = 'var html = require(\'nanohtml\')\n  var el = html`<div>This is a <a href="#">test</a> to ensure <strong>strings</strong> get appended in the correct order.</div>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
-    browserField: false,
     transform: path.join(__dirname, '../../')
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
@@ -82,11 +66,7 @@ test('multiple values on single attribute', function (t) {
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
@@ -100,15 +80,11 @@ test('emits error for syntax error', function (t) {
   var src = 'var html = require(\'nanohtml\')\n  module.exports = function (data) {\n    var className = (\'test\' + ) // <--- HERE\'S A SYNTAX ERROR\n    return html`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
-    browserField: false,
     transform: path.join(__dirname, '../../')
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  // don't b.require createElement, it will hang this test
   b.bundle(function (err, src) {
+    fs.unlinkSync(FIXTURE)
     t.ok(err)
     t.end()
   })
@@ -121,11 +97,7 @@ test('works with newer js', function (t) {
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
@@ -140,11 +112,7 @@ test('boolean attribute expression', function (t) {
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
@@ -167,11 +135,7 @@ test('babel-compiled template literals', function (t) {
       path.join(__dirname, '../../')
     ]
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
@@ -200,11 +164,7 @@ test('buble-compiled template literals', function (t) {
       path.join(__dirname, '../../')
     ]
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
@@ -229,11 +189,7 @@ test('generates source maps in debug mode', function (t) {
     debug: true,
     transform: path.join(__dirname, '../../')
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
@@ -263,11 +219,7 @@ test('accepts input source maps in debug mode', function (t) {
       path.join(__dirname, '../../')
     ]
   })
-  b.plugin(pathmodify, {
-    mods: [
-      pathmodify.mod.dir('nanohtml', '../../')
-    ]
-  })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
