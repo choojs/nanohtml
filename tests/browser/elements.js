@@ -175,21 +175,35 @@ test('for attribute is set correctly', function (t) {
 
 test('allow objects to be passed', function (t) {
   t.plan(1)
+  var bar = 'bar_v'
   var result = html`<div>
-    <div ${{ foo: 'bar' }}>hey</div>
+    <div ${{ foo: 'bar', bar: bar }}>hey</div>
   </div>`
-  t.ok(result.outerHTML.indexOf('<div foo="bar">hey</div>') !== -1, 'contains foo="bar"')
+  t.ok(result.outerHTML.indexOf('<div foo="bar" bar="bar_v">hey</div>') !== -1, 'contains foo="bar" and bar="bar_v"')
   t.end()
 })
 
-test('allow key expression ', function (t) {
+test('allow key expressions ', function (t) {
   t.plan(1)
-  var foo = 'foo'
-  var bar = 'bar'
+  var foo = 'foo_v'
+  var bar = 'bar_v'
   var result = html`<div>
-    <div ${foo}="bar" ${bar}=${bar}>hey</div>
+    <div attr="attr" ${foo}="foo" ${bar}=${bar} ${foo + bar}=${foo + bar}>hey</div>
   </div>`
-  t.ok(result.outerHTML.indexOf('<div foo="bar" bar="bar">hey</div>') !== -1, 'contains foo="bar" and bar="bar"')
+  t.ok(result.outerHTML.indexOf('<div><div attr="attr" foo_v="foo" bar_v="bar_v" foo_vbar_v="foo_vbar_v">hey</div></div>') !== -1, 'contains attr="attr", foo_v="foo", bar_v="bar_v" and foo_vbar_v="foo_vbar_v"')
+  t.end()
+})
+
+test('allow a weird mix of objects, expression keys and values to be passed', function (t) {
+  t.plan(1)
+  var key = 'key_val'
+  var value = 'value_val'
+  var foobar = 'foobar'
+  var variable = 'variable_val'
+  var result = html`<div>
+    <div ${{ foo: 'bar' }} ${{ variable: variable }} ${key}="key" ${foobar}=${foobar} value=${value} value2="${value} ${value + '2'}">hey</div>
+  </div>`
+  t.ok(result.outerHTML.indexOf('<div><div foo="bar" variable="variable_val" key_val="key" foobar="foobar" value="value_val" value2="value_val value_val2">hey</div></div>') !== -1, 'contains foo="bar", variable="variable_val", key_val="key", foobar="foobar", value="value_val" and value2="value_val value_val2"')
   t.end()
 })
 
