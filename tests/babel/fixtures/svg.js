@@ -8,6 +8,8 @@ const svg = html`
 
 const htmlAndSvg = html`
   <div>
-    <svg />
+    <svg viewBox="0 0 100 100">
+      <use xlink:href="#foo" />
+    </svg>
   </div>
 `
