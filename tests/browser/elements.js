@@ -42,7 +42,7 @@ test('can update and submit inputs', function (t) {
 })
 
 test('svg', function (t) {
-  t.plan(3)
+  t.plan(4)
   var result = html`<svg width="150" height="100" viewBox="0 0 3 2">
     <rect width="1" height="2" x="0" fill="#008d46" />
     <use xlink:href="#test" />
@@ -50,6 +50,7 @@ test('svg', function (t) {
   t.equal(result.tagName, 'svg', 'create svg tag')
   t.equal(result.childNodes[0].tagName, 'rect', 'created child rect tag')
   t.equal(result.childNodes[1].getAttribute('xlink:href'), '#test', 'created child use tag with xlink:href')
+  t.equal(result.childNodes[1].attributes.getNamedItem('xlink:href').namespaceURI, 'http://www.w3.org/1999/xlink', 'created child use tag with xlink:href')
   t.end()
 })
 
