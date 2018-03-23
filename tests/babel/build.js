@@ -1,7 +1,7 @@
 const browserify = require('browserify')
 const nanohtml = require('../../')
 
-browserify(require.resolve('../browser'))
+browserify(require.resolve('../browser/foo'))
   .transform('aliasify', {
     aliases: { '../../': 'nanohtml' }
   })

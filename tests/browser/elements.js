@@ -181,3 +181,25 @@ test('allow objects to be passed', function (t) {
   t.ok(result.outerHTML.indexOf('<div foo="bar">hey</div>') !== -1, 'contains foo="bar"')
   t.end()
 })
+
+test('allow key expression ', function (t) {
+  t.plan(1)
+  var foo = 'foo'
+  var bar = 'bar'
+  var result = html`<div>
+    <div ${foo}="bar" ${bar}=${bar}>hey</div>
+  </div>`
+  t.ok(result.outerHTML.indexOf('<div foo="bar" bar="bar">hey</div>') !== -1, 'contains foo="bar" and bar="bar"')
+  t.end()
+})
+
+test('custom elements', function (t) {
+  t.plan(1)
+  var CustomElement = function () {}
+  CustomElement.tagName = 'custom-element'
+  var result = html`<div>
+    <${CustomElement}>hey</${CustomElement}>
+  </div>`
+  t.ok(result.outerHTML.indexOf('<custom-element>hey</custom-element>') !== -1, 'contains custom tag custom-element')
+  t.end()
+})
