@@ -1,11 +1,11 @@
-import bel from 'bel'
+import html from 'nanohtml'
 
 class Component {
   constructor () {
     this.value = 10
   }
   render () {
-    return bel`
+    return html`
       <span>${this.value}</span>
     `
   }

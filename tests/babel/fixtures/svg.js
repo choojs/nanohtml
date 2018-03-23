@@ -1,12 +1,12 @@
-import bel from 'bel'
+import html from 'nanohtml'
 
-const svg = bel`
+const svg = html`
   <svg viewBox="0 14 32 18">
     <path d="M2 14 V18 H6 V14z" />
   </svg>
 `
 
-const htmlAndSvg = bel`
+const htmlAndSvg = html`
   <div>
     <svg />
   </div>

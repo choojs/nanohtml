@@ -1,11 +1,11 @@
-import bel from 'bel'
+import html from 'nanohtml'
 
-bel`
+html`
   <h1 id="page-header"></h1>
 `
-bel`
+html`
   <span class="date-picker"></span>
 `
-bel`
+html`
   <footer />
 `

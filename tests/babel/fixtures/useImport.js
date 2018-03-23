@@ -1,4 +1,4 @@
-import html from 'bel'
+import html from 'nanohtml'
 
 html`
   <div ${attrs} />

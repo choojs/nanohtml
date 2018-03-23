@@ -1,5 +1,5 @@
-import bel from 'bel'
+import html from 'nanohtml'
 
-bel`
+html`
   <button onclick=${(event) => { console.log(event) }}>
 `

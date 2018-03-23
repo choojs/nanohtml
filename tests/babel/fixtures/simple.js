@@ -1,6 +1,6 @@
-import bel from 'bel'
+import html from 'nanohtml'
 
-bel`
+html`
   <div>
     Hello world
   </div>

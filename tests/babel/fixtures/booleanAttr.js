@@ -1,6 +1,6 @@
-const bel = require('bel')
+const html = require('nanohtml')
 
-bel`<input autofocus />`
-bel`<input checked="${true}" />`
-bel`<button disabled=${someVariable} />`
+html`<input autofocus />`
+html`<input checked="${true}" />`
+html`<button disabled=${someVariable} />`
 
