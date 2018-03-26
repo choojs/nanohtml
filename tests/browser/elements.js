@@ -179,7 +179,7 @@ test('allow objects to be passed', function (t) {
   var result = html`<div>
     <div ${{ foo: 'bar', bar: bar }}>hey</div>
   </div>`
-  t.ok(result.outerHTML.indexOf('<div foo="bar" bar="bar_v">hey</div>') !== -1, 'contains foo="bar" and bar="bar_v"')
+  t.ok(result.outerHTML.indexOf('<div><div foo="bar" bar="bar_v">hey</div></div>') !== -1, 'contains foo="bar" and bar="bar_v"')
   t.end()
 })
 
@@ -190,6 +190,7 @@ test('allow key expressions ', function (t) {
   var result = html`<div>
     <div attr="attr" ${foo}="foo" ${bar}=${bar} ${foo + bar}=${foo + bar}>hey</div>
   </div>`
+  console.log(result.outerHTML)
   t.ok(result.outerHTML.indexOf('<div><div attr="attr" foo_v="foo" bar_v="bar_v" foo_vbar_v="foo_vbar_v">hey</div></div>') !== -1, 'contains attr="attr", foo_v="foo", bar_v="bar_v" and foo_vbar_v="foo_vbar_v"')
   t.end()
 })

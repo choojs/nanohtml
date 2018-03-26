@@ -1,5 +1,10 @@
-var _b,
-    _a,
-    _appendChild = require('nanohtml/lib/append-child');
+var html = {
+  'createElement': require('nanohtml/lib/createElement')
+};
 
-_a = document.createElement('div'), _a.setAttribute('class', 'a'), _appendChild(_a, ['\n    ', (_b = document.createElement('div'), _b.setAttribute('class', 'b'), _appendChild(_b, ['\n  ']), _b), '\n']), _a;
+
+html.createElement('div', {
+  'class': 'a'
+}, ['\n    ', html.createElement('div', {
+  'class': 'b'
+}, ['\n  ']), '\n']);

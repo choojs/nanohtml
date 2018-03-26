@@ -1,5 +1,14 @@
-var _input, _input2, _button;
+var html = {
+  'createElement': require('nanohtml/lib/createElement')
+};
 
-_input = document.createElement('input'), _input.setAttribute('autofocus', 'autofocus'), _input;
-_input2 = document.createElement('input'), true && _input2.setAttribute('checked', 'checked'), _input2;
-_button = document.createElement('button'), someVariable && _button.setAttribute('disabled', 'disabled'), _button;
+
+html.createElement('input', {
+  'autofocus': 'autofocus'
+}, []);
+html.createElement('input', {
+  'checked': true
+}, []);
+html.createElement('button', {
+  'disabled': someVariable
+}, []);

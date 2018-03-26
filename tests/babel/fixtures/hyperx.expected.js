@@ -1,17 +1,17 @@
-var _h,
-    _div,
-    _i,
-    _appendChild = require('nanohtml/lib/append-child'); // The example from the https://github.com/substack/hyperx readme,
+var html = {
+  'createElement': require('nanohtml/lib/createElement')
+};
+
+
+var title = 'world'; // The example from the https://github.com/substack/hyperx readme,
 // but with bel.
 
-
-var title = 'world';
 var wow = [1, 2, 3];
 
-var tree = (_div = document.createElement('div'), _appendChild(_div, ['\n  ', (_h = document.createElement('h1'), _h.setAttribute('y', 'ab' + String(1 + 2) + 'cd'), _appendChild(_h, ['hello ', title, '!']), _h), '\n  ', (_i = document.createElement('i'), _appendChild(_i, ['cool']), _i), '\n  wow\n  ', wow.map(function (w) {
-  var _b;
-
-  return _b = document.createElement('b'), _appendChild(_b, [w]), _b;
-}), '\n']), _div);
+var tree = html.createElement('div', {}, ['\n  ', html.createElement('h1', {
+  'y': 'ab' + (1 + 2) + 'cd'
+}, ['hello ', title, '!']), '\n  ', html.createElement('i', {}, ['cool']), '\n  wow\n  ', wow.map(function (w) {
+  return html.createElement('b', {}, [w]);
+}), '\n']);
 
 console.log(tree.outerHTML);

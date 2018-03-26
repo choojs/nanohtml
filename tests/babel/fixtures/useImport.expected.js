@@ -1,7 +1,7 @@
-var _div;
+var html = {
+  'createElement': _createElement
+};
+import _createElement from 'nanohtml/lib/createElement';
 
-import _setAttribute from 'nanohtml/lib/set-attribute';
-import _appendChild from 'nanohtml/lib/append-child';
 
-
-_div = document.createElement('div'), _setAttribute(_div, attrs, attrs), _appendChild(_div, ['\n']), _div;
+html.createElement('div', Object.assign(attrs), ['\n']);

@@ -19,14 +19,14 @@ test('works', function (t) {
     var result = src.toString()
     t.ok(result.indexOf('var html = { createElement: require("nanohtml/lib/createElement") }') !== -1, 'replaced nanohtml dependency with { createElement: require("nanohtml/lib/createElement") }')
     t.ok(result.indexOf('html.createElement("h1",{},[data])') !== -1, 'created an h1 tag')
-    t.ok(result.indexOf('html.createElement("div",{"className":className},[') !== -1, 'set a class attribute')
+    t.ok(result.indexOf('html.createElement("div",{"class":className},[') !== -1, 'set a class attribute')
     t.end()
   })
 })
 
 test('strings + template expressions', function (t) {
   t.plan(2)
-  var src = 'var html = require(\'nanohtml\')\n  var className = \'test\'\n  var el = html`<div class="before ${className} after"><div>`' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  var className = \'test\'\n  var el = html`<div class="before ${className} after"></div>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
@@ -36,7 +36,7 @@ test('strings + template expressions', function (t) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
     var result = src.toString()
-    t.ok(result.indexOf('{"className":("before "+(className))+" after"}') !== -1, 'concats strings + template expressions')
+    t.ok(result.indexOf('{"class":"before "+className+" after"}') !== -1, 'concats strings + template expressions')
     t.end()
   })
 })
@@ -71,7 +71,7 @@ test('multiple values on single attribute', function (t) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
     var result = src.toString()
-    t.ok(result.indexOf('{"className":((a)+" ")+(b)}') !== -1, 'set with both variables')
+    t.ok(result.indexOf('{"class":a+" "+b}') !== -1, 'set with both variables')
     t.end()
   })
 })
@@ -139,7 +139,7 @@ test('babel-compiled template literals', function (t) {
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
-    t.ok(src.indexOf('html.createElement("div",{"className":"whatever "+(abc)},[xyz])') !== -1, 'created a tag')
+    t.ok(src.indexOf('html.createElement("div",{"class":"whatever "+abc},[xyz])') !== -1, 'created a tag')
     t.ok(src.indexOf('<div') === -1, 'removed template literal parts values')
     t.end()
   })
@@ -168,7 +168,7 @@ test('buble-compiled template literals', function (t) {
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
-    t.ok(src.indexOf('html.createElement("div",{"className":"whatever "+(abc)},[xyz])') !== -1, 'created a tag')
+    t.ok(src.indexOf('html.createElement("div",{"class":"whatever "+abc},[xyz])') !== -1, 'created a tag')
     t.end()
   })
 })

@@ -11,9 +11,9 @@ html`
   <div id="str" ${className}="blub" />
 `
 
-var x = 'disabled'
+var x = { disabled: 'disabled' }
 html`
   <button ${x} id="lol" />
 `
-x = ''
+x = {}
 html`<button ${x} id="abc" />`
