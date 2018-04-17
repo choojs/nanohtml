@@ -1,9 +1,10 @@
-var _appendChild = require('nanohtml/lib/append-child');
+var html = {
+  'createElement': require('choo/html/lib/createElement')
+};
 
-var element = void 0;
+
+var element;
 if (someCondition) {
-  var _h;
-
-  element = (_h = document.createElement('h1'), _appendChild(_h, ['Warning!']), _h);
+  element = html.createElement('h1', {}, ['Warning!']);
 }
 document.body.appendChild(someCondition);

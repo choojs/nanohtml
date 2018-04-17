@@ -1,8 +1,12 @@
-var _pageHeader,
-    _datePicker,
-    _footer,
-    _appendChild = require('nanohtml/lib/append-child');
+var html = {
+  'createElement': require('nanohtml/lib/createElement')
+};
 
-_pageHeader = document.createElement('h1'), _pageHeader.setAttribute('id', 'page-header'), _pageHeader;
-_datePicker = document.createElement('span'), _datePicker.setAttribute('class', 'date-picker'), _datePicker;
-_footer = document.createElement('footer'), _appendChild(_footer, ['\n']), _footer;
+
+html.createElement('h1', {
+  'id': 'page-header'
+}, []);
+html.createElement('span', {
+  'class': 'date-picker'
+}, []);
+html.createElement('footer', {}, ['\n']);

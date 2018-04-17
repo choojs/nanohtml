@@ -1,4 +1,8 @@
-var _div,
-    _appendChild = require('nanohtml/lib/append-child');
+var html = {
+  'createElement': require('yo-yo/lib/createElement')
+};
 
-_div = document.createElement('div'), _appendChild(_div, ['\n    ', document.createComment(' important comment text '), '\n  ']), _div;
+
+html.createElement('div', {}, ['\n    ', html.createElement('!--', {
+  'comment': ' important comment text '
+}, []), '\n  ']);

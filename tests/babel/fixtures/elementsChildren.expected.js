@@ -1,7 +1,8 @@
-var _h,
-    _header,
-    _appendChild = require('nanohtml/lib/append-child');
+var html = {
+  'createElement': require('nanohtml/lib/createElement')
+};
 
-const child = (_h = document.createElement('h1'), _appendChild(_h, ['Page header']), _h);
 
-const header = (_header = document.createElement('header'), _appendChild(_header, [child]), _header);
+const child = html.createElement('h1', {}, ['Page header']);
+
+const header = html.createElement('header', {}, [child]);

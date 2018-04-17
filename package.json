@@ -23,13 +23,10 @@
   },
   "dependencies": {
     "acorn": "^5.2.1",
-    "camel-case": "^3.0.0",
     "convert-source-map": "^1.5.1",
     "hyperx": "^2.3.2",
-    "is-boolean-attribute": "0.0.1",
     "nanoassert": "^1.1.0",
     "nanobench": "^2.1.0",
-    "normalize-html-whitespace": "^0.2.0",
     "through2": "^2.0.3",
     "transform-ast": "^2.4.0"
   },

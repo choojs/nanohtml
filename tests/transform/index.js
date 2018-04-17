@@ -10,33 +10,33 @@ test('works', function (t) {
   var src = 'var html = require(\'nanohtml\')\n  module.exports = function (data) {\n    var className = \'test\'\n    return html`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
-    browserField: false,
     transform: path.join(__dirname, '../../')
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
     var result = src.toString()
-    t.ok(result.indexOf('var html = {}') !== -1, 'replaced html dependency with {}')
-    t.ok(result.indexOf('document.createElement("h1")') !== -1, 'created an h1 tag')
-    t.ok(result.indexOf('setAttribute("class", arguments[1])') !== -1, 'set a class attribute')
+    t.ok(result.indexOf('var html = { createElement: require("nanohtml/lib/createElement") }') !== -1, 'replaced nanohtml dependency with { createElement: require("nanohtml/lib/createElement") }')
+    t.ok(result.indexOf('html.createElement("h1",{},[data])') !== -1, 'created an h1 tag')
+    t.ok(result.indexOf('html.createElement("div",{"class":className},[') !== -1, 'set a class attribute')
     t.end()
   })
 })
 
 test('strings + template expressions', function (t) {
   t.plan(2)
-  var src = 'var html = require(\'nanohtml\')\n  var className = \'test\'\n  var el = html`<div class="before ${className} after"><div>`' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  var className = \'test\'\n  var el = html`<div class="before ${className} after"></div>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
-    browserField: false,
     transform: path.join(__dirname, '../../')
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
     var result = src.toString()
-    t.ok(result.indexOf('nanohtml0.setAttribute("class", "before " + arguments[0] + " after")') !== -1, 'concats strings + template expressions')
+    t.ok(result.indexOf('{"class":"before "+className+" after"}') !== -1, 'concats strings + template expressions')
     t.end()
   })
 })
@@ -46,85 +46,32 @@ test('append children in the correct order', function (t) {
   var src = 'var html = require(\'nanohtml\')\n  var el = html`<div>This is a <a href="#">test</a> to ensure <strong>strings</strong> get appended in the correct order.</div>`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
-    browserField: false,
     transform: path.join(__dirname, '../../')
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
     var result = src.toString()
-    var expected = '(nanohtml2, ["This is a ",nanohtml0," to ensure ",nanohtml1," get appended in the correct order."])'
+    var expected = '["This is a ",html.createElement("a",{"href":"#"},["test"])," to ensure ",html.createElement("strong",{},["strings"])," get appended in the correct order."]'
     t.ok(result.indexOf(expected) !== -1, 'append children in the correct order')
     t.end()
   })
 })
 
 test('multiple values on single attribute', function (t) {
-  t.plan(4)
+  t.plan(2)
   var src = 'var html = require(\'nanohtml\')\n  var a = \'testa\'\n  var b = \'testb\'\n  html`<div class="${a} ${b}">`' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
     var result = src.toString()
-    t.ok(result.indexOf('arguments[0]') !== -1, 'first argument')
-    t.ok(result.indexOf('arguments[1]') !== -1, 'second argument')
-    t.ok(result.indexOf('(a,b)') !== -1, 'calling with both variables')
-    t.end()
-  })
-})
-
-test('svg', function (t) {
-  t.plan(2)
-  var src = 'var html = require(\'nanohtml\')\n  var el = html`<svg><line /></svg>`' // eslint-disable-line
-  fs.writeFileSync(FIXTURE, src)
-  var b = browserify(FIXTURE, {
-    browserField: false,
-    transform: path.join(__dirname, '../../')
-  })
-  b.bundle(function (err, src) {
-    fs.unlinkSync(FIXTURE)
-    t.ifError(err, 'no error')
-    var result = src.toString()
-    t.ok(result.indexOf('document.createElementNS("http://www.w3.org/2000/svg", "svg")') !== -1, 'created namespaced svg element')
-    t.end()
-  })
-})
-
-test('xlink:href', function (t) {
-  t.plan(2)
-  var src = 'var html = require(\'nanohtml\')\n  var el = html`<use xlink:href=\'#cat\'/>`' // eslint-disable-line
-  fs.writeFileSync(FIXTURE, src)
-  var b = browserify(FIXTURE, {
-    browserField: false,
-    transform: path.join(__dirname, '../../')
-  })
-  b.bundle(function (err, src) {
-    fs.unlinkSync(FIXTURE)
-    t.iferror(err, 'no error')
-    var result = src.toString()
-    var match = result.indexOf('setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#cat")') !== -1
-    t.ok(match, 'created namespaced xlink:href attribute')
-    t.end()
-  })
-})
-
-test('choo and friends', function (t) {
-  t.plan(3)
-  var src = 'const choo = require(\'choo\')\n  const html = require(\'nanohtml\')\n  const el1 = choo.view`<button>choo choo</button>`\n  const el2 = html`<button>bel bel</button>`' // eslint-disable-line
-  fs.writeFileSync(FIXTURE, src)
-  var b = browserify(FIXTURE, {
-    transform: path.join(__dirname, '../../')
-  })
-  b.bundle(function (err, src) {
-    fs.unlinkSync(FIXTURE)
-    t.ifError(err, 'no error')
-    var result = src.toString()
-    t.ok(result.indexOf('const el1 = (function () {') !== -1, 'converted el1 to a iife')
-    t.ok(result.indexOf('const el2 = (function () {') !== -1, 'converted el1 to a iife')
+    t.ok(result.indexOf('{"class":a+" "+b}') !== -1, 'set with both variables')
     t.end()
   })
 })
@@ -133,10 +80,11 @@ test('emits error for syntax error', function (t) {
   var src = 'var html = require(\'nanohtml\')\n  module.exports = function (data) {\n    var className = (\'test\' + ) // <--- HERE\'S A SYNTAX ERROR\n    return html`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
-    browserField: false,
     transform: path.join(__dirname, '../../')
   })
+  // don't b.require createElement, it will hang this test
   b.bundle(function (err, src) {
+    fs.unlinkSync(FIXTURE)
     t.ok(err)
     t.end()
   })
@@ -149,6 +97,7 @@ test('works with newer js', function (t) {
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
@@ -163,6 +112,7 @@ test('boolean attribute expression', function (t) {
   var b = browserify(FIXTURE, {
     transform: path.join(__dirname, '../../')
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
@@ -185,10 +135,11 @@ test('babel-compiled template literals', function (t) {
       path.join(__dirname, '../../')
     ]
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
-    t.ok(src.indexOf('document.createElement("div")') !== -1, 'created a tag')
+    t.ok(src.indexOf('html.createElement("div",{"class":"whatever "+abc},[xyz])') !== -1, 'created a tag')
     t.ok(src.indexOf('<div') === -1, 'removed template literal parts values')
     t.end()
   })
@@ -213,10 +164,11 @@ test('buble-compiled template literals', function (t) {
       path.join(__dirname, '../../')
     ]
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
-    t.ok(src.indexOf('document.createElement("div")') !== -1, 'created a tag')
+    t.ok(src.indexOf('html.createElement("div",{"class":"whatever "+abc},[xyz])') !== -1, 'created a tag')
     t.end()
   })
 })
@@ -237,6 +189,7 @@ test('generates source maps in debug mode', function (t) {
     debug: true,
     transform: path.join(__dirname, '../../')
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
@@ -266,6 +219,7 @@ test('accepts input source maps in debug mode', function (t) {
       path.join(__dirname, '../../')
     ]
   })
+  b.require('./lib/createElement.js', { expose: 'nanohtml/lib/createElement' })
   b.bundle(function (err, src) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err)
