@@ -2,17 +2,21 @@ var test = require('tape')
 var html = require('../../')
 
 test('create inputs', function (t) {
-  t.plan(5)
+  t.plan(7)
 
   var expected = 'testing'
   var result = html`<input type="text" value="${expected}" />`
   t.equal(result.tagName, 'INPUT', 'created an input')
   t.equal(result.value, expected, 'set the value of an input')
 
-  result = html`<input type="checkbox" checked="${true}" disabled="${false}" />`
+  result = html`<input type="checkbox" checked="${true}" disabled="${false}" indeterminate="${true}" />`
   t.equal(result.getAttribute('type'), 'checkbox', 'created a checkbox')
   t.equal(result.getAttribute('checked'), 'checked', 'set the checked attribute')
   t.equal(result.getAttribute('disabled'), null, 'should not have set the disabled attribute')
+  t.equal(result.indeterminate, true, 'should have set indeterminate property')
+
+  result = html`<input indeterminate />`
+  t.equal(result.indeterminate, true, 'should have set indeterminate property')
 
   t.end()
 })
