@@ -69,8 +69,8 @@ test('event attribute', function (t) {
 test('boolean attribute', function (t) {
   t.plan(1)
 
-  var expected = '<input disabled="disabled" >'
-  var result = html`<input disabled=${true} autofocus=${false}>`.toString()
+  var expected = '<input disabled="disabled" aria-selected="true">'
+  var result = html`<input disabled=${true} autofocus=${false} aria-selected="${true}">`.toString()
 
   t.equal(result, expected)
   t.end()
