@@ -193,9 +193,9 @@ test('supports extended build-in elements', function (t) {
       optionsArg = arguments[1]
       return originalCreateElement.apply(this, arguments)
     }
-  })(); // eslint-disable-line
+  })()
 
-  html`<div is="my-div"></div>`
+  ;html`<div is="my-div"></div>`
 
   t.ok(typeof optionsArg === 'object' && optionsArg.is === 'my-div', 'properly passes optional extends object')
 
