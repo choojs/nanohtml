@@ -199,6 +199,6 @@ test('supports extended build-in elements', function (t) {
 
   function stubCreateElement (tag, options) {
     optionsArg = options
-    return createElement.call(this, tag, options)
+    return createElement.call(document, tag, options)
   }
 })
