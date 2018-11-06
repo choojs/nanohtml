@@ -181,19 +181,19 @@ test('allow objects to be passed', function (t) {
   t.end()
 })
 
-test('supports extended build-in elements', function(t) {
+test('supports extended build-in elements', function (t) {
   var createElement = document.createElement
   var isArg
 
   document.createElement = stubCreateElement
 
-  var result = html`<div is="my-div"></div>`
+  html`<div is="my-div"></div>`
 
   t.ok(typeof isArg === 'object' && isArg.extends === 'my-div', 'properly passes optional extends object')
 
   document.createElement = createElement
 
-  function stubCreateElement(tag, is) {
+  function stubCreateElement (tag, is) {
     isArg = is
     return createElement(tag, is)
   }
