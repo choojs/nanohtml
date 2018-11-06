@@ -17,6 +17,8 @@ test('works', function (t) {
     fs.unlinkSync(FIXTURE)
     t.ifError(err, 'no error')
     var result = src.toString()
+
+    console.log(result)
     t.ok(result.indexOf('var html = {}') !== -1, 'replaced html dependency with {}')
     t.ok(result.indexOf('document.createElement("h1")') !== -1, 'created an h1 tag')
     t.ok(result.indexOf('document.createElement("div", { is: "my-div" })') !== -1, 'created an extended build-in element')
