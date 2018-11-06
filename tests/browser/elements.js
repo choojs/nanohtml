@@ -1,3 +1,5 @@
+/* global Document */
+
 var test = require('tape')
 var html = require('../../')
 
