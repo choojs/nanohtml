@@ -188,12 +188,12 @@ test('supports extended build-in elements', function (t) {
   var originalCe = document[ceKey]
   var optionsArg
 
-  document[ceKey] = function () {
-    optionsArg = arguments[1]
-    console.log(this)
-    console.log(arguments)
-    return originalCe.apply(this, arguments)
-  }
+  (function() {
+    document[ceKey] = function () {
+      optionsArg = arguments[1]
+      return originalCe.apply(this, arguments)
+    }
+  })();
 
   html`<div is="my-div"></div>`
 
