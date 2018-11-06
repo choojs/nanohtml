@@ -190,6 +190,8 @@ test('supports extended build-in elements', function (t) {
 
   document[createElementKey] = function () {
     optionsArg = arguments[1]
+    console.log(this)
+    console.log(arguments)
     return originalCreateElement.apply(this, arguments)
   }
 
