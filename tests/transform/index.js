@@ -7,7 +7,7 @@ var FIXTURE = path.join(__dirname, 'fixture.js')
 
 test('works', function (t) {
   t.plan(4)
-  var src = 'var html = require(\'nanohtml\')\n  module.exports = function (data) {\n    var className = \'test\'\n    return html`<div class="${className}">\n      <h1>${data}</h1>\n    </div>`\n  }' // eslint-disable-line
+  var src = 'var html = require(\'nanohtml\')\n  module.exports = function (data) {\n    var className = \'test\'\n    return html`<div class="${className}">\n      <h1>${data}</h1>\n   <div is="my-div"></div>    </div>`\n  }' // eslint-disable-line
   fs.writeFileSync(FIXTURE, src)
   var b = browserify(FIXTURE, {
     browserField: false,
@@ -19,6 +19,7 @@ test('works', function (t) {
     var result = src.toString()
     t.ok(result.indexOf('var html = {}') !== -1, 'replaced html dependency with {}')
     t.ok(result.indexOf('document.createElement("h1")') !== -1, 'created an h1 tag')
+    t.ok(result.indexOf('document.createElement("div", { is: "my-div" })') !== -1, 'created an extended build-in element')
     t.ok(result.indexOf('setAttribute("class", arguments[1])') !== -1, 'set a class attribute')
     t.end()
   })
