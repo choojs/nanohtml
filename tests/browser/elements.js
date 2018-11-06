@@ -184,13 +184,13 @@ test('allow objects to be passed', function (t) {
 test('supports extended build-in elements', function (t) {
   t.plan(1)
 
-  var createElementKey = 'createElement'
+  var createElementKey = 'create' + 'Element'
   var originalCreateElement = document[createElementKey]
   var optionsArg
 
   document[createElementKey] = function () {
     optionsArg = arguments[1]
-    return originalCreateElement.apply(document, arguments)
+    return originalCreateElement.apply(this, arguments)
   }
 
   html`<div is="my-div"></div>`
