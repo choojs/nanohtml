@@ -184,7 +184,7 @@ test('allow objects to be passed', function (t) {
 test('supports extended build-in elements', function (t) {
   t.plan(1)
 
-  var createElement = document.createElement
+  var createElement = Document.prototype.createElement
   var optionsArg
 
   document.createElement = function () {
