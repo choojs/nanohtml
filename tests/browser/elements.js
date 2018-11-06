@@ -196,7 +196,7 @@ test('supports extended build-in elements', function (t) {
 
   t.ok(typeof optionsArg === 'object' && optionsArg.is === 'my-div', 'properly passes optional extends object')
 
-  document.createElement = createElement
+  delete document.createElement
 
   t.end()
 })
