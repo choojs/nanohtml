@@ -187,7 +187,10 @@ test('supports extended build-in elements', function (t) {
   var createElement = document.createElement
   var optionsArg
 
-  document.createElement = stubCreateElement
+  document.createElement = function () {
+    optionsArg = arguments[1]
+    return createElement.apply(this, arguments)
+  }
 
   html`<div is="my-div"></div>`
 
@@ -196,9 +199,4 @@ test('supports extended build-in elements', function (t) {
   document.createElement = createElement
 
   t.end()
-
-  function stubCreateElement (tag, options) {
-    optionsArg = options
-    return createElement.call(document, tag, options)
-  }
 })
