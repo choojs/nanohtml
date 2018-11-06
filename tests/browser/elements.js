@@ -188,7 +188,7 @@ test('supports extended build-in elements', function (t) {
   var optionsArg
 
   // this iife is a must to avoid illegal invocation type errors, caused by transformed nanohtml tests
-  (function() {
+  (function () {
     document.createElement = function () {
       optionsArg = arguments[1]
       return originalCreateElement.apply(this, arguments)
