@@ -1,5 +1,3 @@
-/* global Document */
-
 var test = require('tape')
 var html = require('../../')
 
@@ -186,12 +184,12 @@ test('allow objects to be passed', function (t) {
 test('supports extended build-in elements', function (t) {
   t.plan(1)
 
-  var createElement = Document.prototype.createElement
+  var originalCreateElement = document.createElement
   var optionsArg
 
   document.createElement = function () {
     optionsArg = arguments[1]
-    return createElement.apply(this, arguments)
+    return originalCreateElement.apply(document, arguments)
   }
 
   html`<div is="my-div"></div>`
