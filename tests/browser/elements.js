@@ -184,10 +184,11 @@ test('allow objects to be passed', function (t) {
 test('supports extended build-in elements', function (t) {
   t.plan(1)
 
-  var originalCreateElement = document.createElement
+  var createElementKey = 'createElement'
+  var originalCreateElement = document[createElementKey]
   var optionsArg
 
-  document.createElement = function () {
+  document[createElementKey] = function () {
     optionsArg = arguments[1]
     return originalCreateElement.apply(document, arguments)
   }
@@ -196,7 +197,7 @@ test('supports extended build-in elements', function (t) {
 
   t.ok(typeof optionsArg === 'object' && optionsArg.is === 'my-div', 'properly passes optional extends object')
 
-  delete document.createElement
+  delete document[createElementKey]
 
   t.end()
 })
