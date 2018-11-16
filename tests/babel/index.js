@@ -37,6 +37,7 @@ function testFixture (name, opts) {
 }
 
 testFixture('simple')
+testFixture('custom-build-in')
 testFixture('empty')
 testFixture('this')
 testFixture('variableNames')
