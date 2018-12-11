@@ -80,6 +80,21 @@ function onclick (e) {
 }
 ```
 
+### Multiple root elements
+
+If you have more than one root element they will be combined with a [DocumentFragment](https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment).
+
+```js
+var html = require('nanohtml')
+
+var el = html`
+  <li>Chashu</li>
+  <li>Nori</li>
+`
+
+document.querySelector('ul').appendChild(el)
+```
+
 ## Static optimizations
 Parsing HTML has significant overhead. Being able to parse HTML statically,
 ahead of time can speed up rendering to be about twice as fast.
