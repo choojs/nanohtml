@@ -21,6 +21,29 @@ test('create inputs', function (t) {
   t.end()
 })
 
+test('create inputs with object spread', function (t) {
+  t.plan(7)
+
+  var expected = 'testing'
+  var props = { type: 'text', value: expected }
+  var result = html`<input ${props} />`
+  t.equal(result.tagName, 'INPUT', 'created an input')
+  t.equal(result.value, expected, 'set the value of an input')
+
+  props = { type: 'checkbox', checked: true, disabled: false, indeterminate: true }
+  result = html`<input ${props} />`
+  t.equal(result.getAttribute('type'), 'checkbox', 'created a checkbox')
+  t.equal(result.getAttribute('checked'), 'checked', 'set the checked attribute')
+  t.equal(result.getAttribute('disabled'), null, 'should not have set the disabled attribute')
+  t.equal(result.indeterminate, true, 'should have set indeterminate property')
+
+  props = { indeterminate: true }
+  result = html`<input ${props} />`
+  t.equal(result.indeterminate, true, 'should have set indeterminate property')
+
+  t.end()
+})
+
 test('can update and submit inputs', function (t) {
   t.plan(2)
   document.body.innerHTML = ''
