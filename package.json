@@ -2,7 +2,7 @@
   "name": "nanohtml",
   "description": "HTML template strings for the Browser with support for Server Side Rendering in Node.",
   "repository": "choojs/nanohtml",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "main": "index.js",
   "files": [
     "index.js",
