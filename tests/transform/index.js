@@ -25,6 +25,26 @@ test('works', function (t) {
   })
 })
 
+test('works with code transpiled from Typescript with esModuleInterop', function (t) {
+  t.plan(5)
+  var src = '"use strict";\n  var __importDefault = (this && this.__importDefault) || function (mod) {\n      return (mod && mod.__esModule) ? mod : { "default": mod };\n  };\n  Object.defineProperty(exports, "__esModule", { value: true });\n  const nanohtml_1 = __importDefault(require("nanohtml"));\n  module.exports = function (data) {\n      const className = \'test\';\n      return nanohtml_1.default `<div class="${className}">\n        <h1>${data}</h1>\n        <div is="my-div"></div>\n      </div>`;\n  };' // eslint-disable-line
+  fs.writeFileSync(FIXTURE, src)
+  var b = browserify(FIXTURE, {
+    browserField: false,
+    transform: path.join(__dirname, '../../')
+  })
+  b.bundle(function (err, src) {
+    fs.unlinkSync(FIXTURE)
+    t.ifError(err, 'no error')
+    var result = src.toString()
+    t.ok(result.indexOf('const nanohtml_1 = __importDefault({})') !== -1, 'replaced html dependency with {}')
+    t.ok(result.indexOf('document.createElement("h1")') !== -1, 'created an h1 tag')
+    t.ok(result.indexOf('document.createElement("div", { is: "my-div" })') !== -1, 'created an extended build-in element')
+    t.ok(result.indexOf('setAttribute("class", arguments[1])') !== -1, 'set a class attribute')
+    t.end()
+  })
+})
+
 test('strings + template expressions', function (t) {
   t.plan(2)
   var src = 'var html = require(\'nanohtml\')\n  var className = \'test\'\n  var el = html`<div class="before ${className} after"><div>`' // eslint-disable-line
