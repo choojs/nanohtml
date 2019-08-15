@@ -49,7 +49,7 @@
     "pify": "^3.0.0",
     "standard": "^10.0.3",
     "tape": "^4.8.0",
-    "tape-run": "^3.0.4",
+    "tape-run": "^6.0.0",
     "tinyify": "^2.4.0"
   },
   "keywords": [
