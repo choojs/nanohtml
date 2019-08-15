@@ -16,7 +16,9 @@
     "bench": "node bench/server.js && browserify bench/client.js | tape-run",
     "build": "mkdir -p dist/ && browserify index -s html -p bundle-collapser/plugin > dist/bundle.js && browserify index -p tinyify > dist/bundle.min.js && cat dist/bundle.min.js | gzip --best --stdout | wc -c | pretty-bytes",
     "prepublishOnly": "npm run build",
-    "test": "standard && node tests && npm run test:browser && npm run test:transform-browser && npm run test:babel-browser",
+    "test": "npm run test:standard && npm run test:browser && npm run test:browser && npm run test:transform-browser && npm run test:babel-browser",
+    "test:standard": "standard",
+    "test:node": "node tests",
     "test:browser": "browserify tests/browser | tape-run",
     "test:transform-browser": "node tests/transform/build | tape-run",
     "test:babel-browser": "node tests/babel/build | tape-run"
