@@ -22,7 +22,7 @@
     "test:babel-browser": "node tests/babel/build | tape-run"
   },
   "dependencies": {
-    "acorn": "^6.0.4",
+    "acorn-node": "^1.8.2",
     "camel-case": "^3.0.0",
     "convert-source-map": "^1.5.1",
     "estree-is-member-expression": "^1.0.0",
