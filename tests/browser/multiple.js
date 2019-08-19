@@ -25,3 +25,18 @@ test('nested fragments', function (t) {
   t.equals(fragments.childNodes.length, 7)
   t.end()
 })
+
+test('multiple elements mixed with array', function (t) {
+  var arr = [html`<li>Helsinki</li>`, null, html`<li>Stockholm</li>`]
+  var multiple = html`<li>Hamburg</li>${arr}<li>Berlin</li>`
+
+  var list = document.createElement('ul')
+  list.appendChild(multiple)
+  t.equal(list.children.length, 4, '4 children')
+  t.equal(list.children[0].tagName, 'LI', 'list tag name')
+  t.equal(list.children[0].textContent, 'Hamburg')
+  t.equal(list.children[1].textContent, 'Helsinki')
+  t.equal(list.children[2].textContent, 'Stockholm')
+  t.equal(list.children[3].textContent, 'Berlin')
+  t.end()
+})
