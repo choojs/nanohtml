@@ -168,6 +168,19 @@ test('space between text followed by non-text nodes', function (t) {
   t.end()
 })
 
+test('space around text surrounded by non-text nodes', function (t) {
+  t.plan(1)
+  var result = html`
+    <p>
+      <strong>I agree</strong>
+      whitespace
+      <strong>is strong</strong>
+    </p>
+  `
+  t.equal(result.outerHTML, '<p><strong>I agree</strong> whitespace <strong>is strong</strong></p>', 'should have correct output')
+  t.end()
+})
+
 test('space between non-text nodes', function (t) {
   t.plan(1)
   var result = html`
