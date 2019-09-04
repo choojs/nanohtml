@@ -53,6 +53,28 @@ test('unescape html inside html', function (t) {
   t.end()
 })
 
+test('quote attributes', function (t) {
+  t.plan(1)
+
+  var title = 'greeting'
+  var expected = '<span title="greeting">Hello there</span>'
+  var result = html`<span title=${title}>Hello there</span>`.toString()
+
+  t.equal(result, expected)
+  t.end()
+})
+
+test('respect query parameters', function (t) {
+  t.plan(1)
+
+  var param = 'planet'
+  var expected = '<a href="/greeting?query=planet">Hello planet</a>'
+  var result = html`<a href="/greeting?query=${param}">Hello planet</a>`.toString()
+
+  t.equal(result, expected)
+  t.end()
+})
+
 test('event attribute', function (t) {
   t.plan(1)
 
