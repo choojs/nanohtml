@@ -1,8 +1,4 @@
-var doc = typeof window !== 'undefined'
-  ? document
-  : new (require('jsdom').JSDOM)().window.document
+var doc = new (require('js' + 'dom').JSDOM)().window.document
 
 module.exports.document = doc
-module.exports.html = typeof window !== 'undefined'
-  ? require('../../')
-  : require('../../dom')(doc)
+module.exports.html = require('../../dom')(doc)
