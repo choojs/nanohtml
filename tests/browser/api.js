@@ -1,5 +1,5 @@
 var test = require('tape')
-var html = require('../../')
+var { html } = require('./html')
 
 test('creates an element', function (t) {
   t.plan(3)

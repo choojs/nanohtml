@@ -1,5 +1,5 @@
 let test = require('tape')
-var html = require('../../')
+var { document, html } = require('./html')
 
 /* Note:
 Failing tests have been commented. They include the following:

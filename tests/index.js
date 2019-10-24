@@ -1,6 +1,5 @@
-if (typeof window !== 'undefined') {
-  require('./browser')
-} else {
+require('./browser')
+if (typeof window === 'undefined') {
   require('./server')
   require('./transform')
   require('./babel')
