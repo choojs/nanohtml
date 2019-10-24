@@ -1,5 +1,10 @@
 var test = require('tape')
-var { document, html } = require('./html')
+if (typeof window !== "undefined") {
+  var document = window.document
+  var html = require('../../')
+} else {
+  var { document, html } = require('./html')
+}
 
 test('create inputs', function (t) {
   t.plan(7)

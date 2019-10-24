@@ -1,5 +1,9 @@
 var test = require('tape')
-var { html } = require('./html')
+if (typeof window !== "undefined") {
+  var html = require('../../')
+} else {
+  var { html } = require('./html')
+}
 
 test('creates an element', function (t) {
   t.plan(3)
