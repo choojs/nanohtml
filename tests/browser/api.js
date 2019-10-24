@@ -1,8 +1,8 @@
 var test = require('tape')
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   var html = require('../../')
 } else {
-  var { html } = require('./html')
+  html = require('./html').html
 }
 
 test('creates an element', function (t) {

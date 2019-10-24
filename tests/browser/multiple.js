@@ -1,9 +1,11 @@
 var test = require('tape')
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   var document = window.document
   var html = require('../../')
 } else {
-  var { document, html } = require('./html')
+  var nano = require('./html')
+  document = nano.document
+  html = nano.html
 }
 
 test('multiple elements', function (t) {
