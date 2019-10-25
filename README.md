@@ -41,6 +41,28 @@ var el = html`
 console.log(el.toString())
 ```
 
+### Node with custom DOM
+Modules like [`jsdom`](https://github.com/jsdom/jdsom) implement (parts of)
+the DOM in pure JavaScript. If you don't really need the performance of
+string concatenation, or use nanohtml components that modify the raw DOM, use
+`nanohtml/dom` to give nanohtml a custom Document.
+
+```js
+var JSDOM = require('jsdom').JSDOM
+var nanohtml = require('./dom')
+var jsdom = new JSDOM()
+
+var html = nanohtml(jsdom.window.document)
+var el = html`
+  <body>
+    <h1>Hello planet</h1>
+  </body>
+`
+el.appendChild(html`<p>A paragraph</p>`)
+
+el.outerHTML === '<body><h1>Hello planet</h1><p>A paragraph</p></body>'
+```
+
 ### Interpolating unescaped HTML
 By default all content inside template strings is escaped. This is great for
 strings, but not ideal if you want to insert HTML that's been returned from
