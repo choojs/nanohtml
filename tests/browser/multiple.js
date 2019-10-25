@@ -1,5 +1,12 @@
 var test = require('tape')
-var html = require('../../')
+if (typeof window !== 'undefined') {
+  var document = window.document
+  var html = require('../../')
+} else {
+  var nano = require('./html')
+  document = nano.document
+  html = nano.html
+}
 
 test('multiple elements', function (t) {
   var multiple = html`<li>Hamburg</li><li>Helsinki</li>haha<li>Berlin<div>test</div></li>`

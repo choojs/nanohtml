@@ -7,6 +7,7 @@
   "files": [
     "index.js",
     "raw.js",
+    "dom.js",
     "lib",
     "types",
     "dist"
@@ -16,7 +17,7 @@
     "bench": "node bench/server.js && browserify bench/client.js | tape-run",
     "build": "mkdir -p dist/ && browserify index -s html -p bundle-collapser/plugin > dist/bundle.js && browserify index -p tinyify > dist/bundle.min.js && cat dist/bundle.min.js | gzip --best --stdout | wc -c | pretty-bytes",
     "prepublishOnly": "npm run build",
-    "test": "npm run test:standard && npm run test:node && npm run test:browser && npm run test:browser && npm run test:transform-browser && npm run test:babel-browser",
+    "test": "npm run test:standard && npm run test:node && npm run test:browser && npm run test:transform-browser && npm run test:babel-browser",
     "test:standard": "standard",
     "test:node": "node tests",
     "test:browser": "browserify tests/browser | tape-run",
@@ -46,6 +47,7 @@
     "bubleify": "^1.2.0",
     "bundle-collapser": "^1.3.0",
     "choo": "^6.9.0",
+    "jsdom": "^15.2.0",
     "pify": "^3.0.0",
     "standard": "^10.0.3",
     "tape": "^4.8.0",

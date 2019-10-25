@@ -3,7 +3,10 @@ const nanohtml = require('../../')
 
 browserify(require.resolve('../browser'))
   .transform('aliasify', {
-    aliases: { '../../': 'nanohtml' }
+    aliases: {
+      './html': 'nanohtml',
+      '../../': 'nanohtml'
+    }
   })
   .transform(nanohtml)
   .bundle()
