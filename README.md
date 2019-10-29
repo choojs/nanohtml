@@ -49,7 +49,7 @@ string concatenation, or use nanohtml components that modify the raw DOM, use
 
 ```js
 var JSDOM = require('jsdom').JSDOM
-var nanohtml = require('./dom')
+var nanohtml = require('nanohtml/dom')
 var jsdom = new JSDOM()
 
 var html = nanohtml(jsdom.window.document)
