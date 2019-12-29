@@ -1,59 +1,69 @@
 var assert = require('assert')
 var hyperx = require('hyperx')
+var cache = require('./cache')
 var SVG_TAGS = require('./lib/svg-tags')
 var BOOL_PROPS = require('./lib/bool-props')
 var DIRECT_PROPS = require('./lib/direct-props')
 
-var SVGNS = 'http://www.w3.org/2000/svg'
+var PLACEHOLDER = /\0placeholder(\d+)\0/g
 var XLINKNS = 'http://www.w3.org/1999/xlink'
+var SVGNS = 'http://www.w3.org/2000/svg'
 var COMMENT_TAG = '!--'
 
 module.exports = parse
 
 function parse (template, ...values) {
   // Create indexed placeholders for all values
-  values = values.map(function (v, index) {
+  var placeholders = values.map(function (v, index) {
     return '\0placeholder' + index + '\0'
   })
 
   // Parse template
-  var parser = hyperx(nanoHtmlCreateElement, {
+  var parser = hyperx(renderTemplate, {
     comments: true,
     createFragment: createFragment
   })
-  var createElement = parser(template, ...values)
+  var parsed = parser(template, ...placeholders)
 
-  return function parsed () {
-    // Create element from template
-    var res = createElement()
+  return function render () {
+    // Render element from template
+    var res = parsed.render()
+
+    // Cache element utilities
+    cache.set(res.element, {
+      key: template,
+      update: update,
+      bind: res.bind
+    })
 
     // Sort updaters by index
     var updaters = res.editors.sort(function (a, b) {
       return a.index - b.index
     }).map(function (editor) {
-      return editor.update
+      return function update () {
+        return editor.update.apply(editor, arguments)
+      }
     })
 
-    return { element: res.element, update }
+    return { element: res.element, update: update }
 
     // Run all updaters in order with given values
     // arr -> void
     function update (values) {
       assert(Array.isArray(values), 'values should be type array')
-      assert.equal(values.length, updaters.length, 'number of values (' + values.length + ') must match number of slots (' + updaters.length + ')')
+      assert.equal(values.length, updaters.length, 'nanohtml: number of values (' + values.length + ') must match number of slots (' + updaters.length + ')')
       for (var i = 0, len = values.length; i < len; i++) {
         updaters[i](values[i], values)
       }
     }
   }
 
-  function nanoHtmlCreateElement (tag, props, children) {
-    createElement.template = template
-    return createElement
+  function renderTemplate (tag, props, children) {
+    return { render, template }
 
     // Template generator
     // () -> Element
-    function createElement () {
+    function render () {
       var element
       var editors = []
 
@@ -91,6 +101,7 @@ function parse (template, ...values) {
         element = document.createElement(tag)
       }
 
+      // Handle element properties, hooking up placeholders
       Object.keys(props).forEach(function (name, i) {
         if (isPlaceholder(name)) {
           editors.push({
@@ -111,11 +122,11 @@ function parse (template, ...values) {
           return
         }
         if (/\0placeholder/.test(props[name])) {
-          props[name].replace(/\0placeholder(\d+)\0/g, function (placeholder) {
+          props[name].replace(PLACEHOLDER, function (placeholder) {
             editors.push({
               index: getPlaceholderIndex(placeholder),
               update (_, all) {
-                var value = props[name].replace(/\0placeholder(\d+)\0/g, function (_, index) {
+                var value = props[name].replace(PLACEHOLDER, function (_, index) {
                   return all[index]
                 })
                 setAttribute(name, value)
@@ -127,45 +138,87 @@ function parse (template, ...values) {
         setAttribute(name, props[name])
       })
 
-      for (var i = 0, len = children.length; i < len; i++) {
-        var child = children[i]
+      // Handle element children, generate placeholders and hook up editors
+      children.forEach(function (child) {
+        var _update
         if (isPlaceholder(child)) {
+          // Child is a partial
           var index = getPlaceholderIndex(child)
           child = document.createComment('placeholder')
+
+          // Handle partial component
+          if (typeof values[index] === 'object' && values[index].key) {
+            // Use key to determine if nodes are equal
+            // Node -> bool
+            child.isSameNode = function isSameNode (node) {
+              var cached = cache.get(node)
+              return cached && cached.key === values[index].key
+            }
+
+            // Expose interface for binding placeholder to an existing updater
+            cache.set(child, {
+              key: values[index].key,
+              bind (node) {
+                var cached = cache.get(node)
+                assert(cached, 'nanohtml: cannot bind to uncached node')
+                var editor = editors.find((editor) => editor.index === index)
+                editor.update = function update (value) {
+                  return cached.update([value])
+                }
+              }
+            })
+          }
+
           editors.push({
             index: index,
-            update: (function (oldChild) {
-              var update
-              return function (newChild) {
-                if (newChild.template && newChild.values) {
-                  if (update) {
-                    update(newChild.values)
-                    newChild = oldChild
-                    return
-                  } else if (newChild.createElement) {
-                    var res = newChild.createElement()
-                    newChild = res.element
-                    update = res.update
-                  }
-                }
-                newChild = Array.isArray(newChild) ? newChild.map(toNode) : toNode(newChild)
-                replaceChild(oldChild, newChild)
-                oldChild = newChild
-              }
-            }(child))
+            update: update
           })
-        } else if (typeof child === 'function' && child.template === template) {
-          var res = child()
+        } else if (isChildTemplate(child, template)) {
+          // Child is an inline child node of element
+          var res = child.render()
           if (res && res.element && res.editors) {
+            cache.set(res.element, {
+              key: child.template,
+              bind: res.bind
+            })
             editors = editors.concat(res.editors)
             child = res.element
           }
         }
-        element.appendChild(toNode(child))
+
+        child = toNode(child)
+        element.appendChild(child)
+
+        // Update/render node in-place
+        // any -> void
+        function update (newChild) {
+          if (_update && newChild.values) {
+            return _update(newChild.values)
+          } else if (newChild.key && newChild.render) {
+            var res = newChild.render()
+            _update = res.update
+            res.update(newChild.values)
+            replaceChild(child, res.element)
+            child = newChild
+          } else {
+            newChild = toNode(newChild)
+            replaceChild(child, newChild)
+            child = newChild
+          }
+        }
+      })
+
+      return { element, editors, bind }
+
+      // Bind updaters to an existing node
+      function bind (node) {
+        var cached = cache.get(element)
+        if (cached) cache.set(node, cached)
+        element = node
       }
 
-      return { element, editors }
-
+      // Set element attribute
+      // (str, any) -> void
       function setAttribute (name, value) {
         var key = name.toLowerCase()
 
@@ -202,15 +255,14 @@ function parse (template, ...values) {
         }
       }
 
+      // Replace one element with another
+      // (Node, Node) -> void
       function replaceChild (oldChild, newChild) {
         if (Array.isArray(oldChild)) {
           while (oldChild.length > 1) {
             element.removeChild(oldChild.pop())
           }
           oldChild = oldChild[0]
-        }
-        if (Array.isArray(newChild)) {
-          newChild = createFragment(newChild)
         }
         element.replaceChild(newChild, oldChild)
       }
@@ -222,6 +274,13 @@ function parse (template, ...values) {
 // any -> bool
 function isPlaceholder (value) {
   return typeof value === 'string' && /^\0placeholder/.test(value)
+}
+
+// Determine wether value is a child element of the given template
+// (any, arr) -> bool
+function isChildTemplate (value, template) {
+  if (typeof value !== 'object') return false
+  return typeof value.render === 'function' && value.template === template
 }
 
 // Get index of given placeholder value

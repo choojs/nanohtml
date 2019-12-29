@@ -18,44 +18,52 @@ test('renders nested html', function (t) {
 })
 
 test('can mount in DOM', function (t) {
-  document.body.innerHTML = '<span>Hi <strong>world</strong>!</span>'
-  render(html`<body><span>Hello ${html`<span>planet</span>`}!</span></body>`, document.body)
-  t.equal(document.body.childElementCount, 1, 'same amount of children')
-  t.equal(document.body.firstElementChild.childElementCount, 1, 'childrens children mounted')
-  t.equal(document.body.firstElementChild.innerText, 'Hello planet!', 'content match')
+  var div = document.createElement('div')
+  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  document.body.appendChild(div)
+  render(html`<div><span>Hello ${html`<span>planet</span>`}!</span></div>`, div)
+  t.equal(div.childElementCount, 1, 'same amount of children')
+  t.equal(div.firstElementChild.childElementCount, 1, 'childrens children mounted')
+  t.equal(div.firstElementChild.innerText, 'Hello planet!', 'content match')
+  document.body.removeChild(div)
   t.end()
 })
 
 test('updates in place', function (t) {
-  document.body.innerHTML = '<span>Hi <strong>world</strong>!</span>'
-  render(main('planet'), document.body)
-  var content = document.querySelector('.content')
+  var div = document.createElement('div')
+  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  document.body.appendChild(div)
+  render(main('planet'), div)
+  var content = div.querySelector('.content')
   t.equal(content.innerText, 'planet', 'content mounted')
-  render(main('world'), document.body)
+  render(main('world'), div)
   t.equal(content.innerText, 'world', 'content updated')
+  document.body.removeChild(div)
   t.end()
 
   function main (text) {
-    return html`<body><span>Hello ${html`<span class="content">${text}</span>`}!</span></body>`
+    return html`<div><span>Hello ${html`<span class="content">${text}</span>`}!</span></div>`
   }
 })
 
-test('persists in DOM', function (t) {
-  document.body.innerHTML = '<span>Hi <strong>world</strong>!</span>'
-  render(foo('planet'), document.body)
-  var content = document.querySelector('.content')
-  t.equal(content.innerText, 'planet', 'content mounted')
-  render(bar('world'), document.body)
-  t.ok(content.isSameNode(document.querySelector('.content')), 'same node')
+test('persists in DOM between mounts', function (t) {
+  var div = document.createElement('div')
+  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  document.body.appendChild(div)
+  render(foo('planet'), div)
+  var content = div.querySelector('.content')
+  render(bar('world'), div)
+  t.ok(content.isSameNode(div.querySelector('.content')), 'same node')
   t.equal(content.innerText, 'world', 'content updated')
+  document.body.removeChild(div)
   t.end()
 
   function foo (text) {
-    return html`<body><span>Hello ${name(text)}!</span></body>`
+    return html`<div><span>Hello ${name(text)}!</span></div>`
   }
 
   function bar (text) {
-    return html`<body><span>Hello ${name(text)}!</span></body>`
+    return html`<div><span>Hello ${name(text)}!</span></div>`
   }
 
   function name (text) {
