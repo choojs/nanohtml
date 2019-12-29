@@ -18,43 +18,53 @@ test('renders nested html', function (t) {
 })
 
 test('can mount in DOM', function (t) {
+  var id = makeID()
   var div = document.createElement('div')
   div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
   document.body.appendChild(div)
-  render(html`<div><span>Hello ${html`<span>planet</span>`}!</span></div>`, div)
-  t.equal(div.childElementCount, 1, 'same amount of children')
-  t.equal(div.firstElementChild.childElementCount, 1, 'childrens children mounted')
-  t.equal(div.firstElementChild.innerText, 'Hello planet!', 'content match')
+
+  render(html`<div id="${id}"><span>Hello ${html`<span>planet</span>`}!</span></div>`, div)
+  var res = document.getElementById(id)
+  t.ok(res, 'element was mounted')
+  t.ok(res.isSameNode(div), 'morphed onto existing node')
+  t.equal(res.innerText, 'Hello planet!', 'content match')
   document.body.removeChild(div)
   t.end()
 })
 
 test('updates in place', function (t) {
+  var id = makeID()
   var div = document.createElement('div')
   div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
   document.body.appendChild(div)
+
   render(main('planet'), div)
-  var content = div.querySelector('.content')
-  t.equal(content.innerText, 'planet', 'content mounted')
+  var res = document.getElementById(id)
+  t.equal(res.innerText, 'planet', 'content mounted')
   render(main('world'), div)
-  t.equal(content.innerText, 'world', 'content updated')
+  t.equal(res.innerText, 'world', 'content updated')
   document.body.removeChild(div)
   t.end()
 
   function main (text) {
-    return html`<div><span>Hello ${html`<span class="content">${text}</span>`}!</span></div>`
+    return html`<div><span>Hello ${html`<span id="${id}">${text}</span>`}!</span></div>`
   }
 })
 
 test('persists in DOM between mounts', function (t) {
+  var id = makeID()
   var div = document.createElement('div')
   div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
   document.body.appendChild(div)
+
   render(foo('planet'), div)
-  var content = div.querySelector('.content')
+  var res = document.getElementById(id)
+  t.equal(res.innerText, 'planet', 'did mount')
+
   render(bar('world'), div)
-  t.ok(content.isSameNode(div.querySelector('.content')), 'same node')
-  t.equal(content.innerText, 'world', 'content updated')
+  var updated = document.getElementById(id)
+  t.ok(res.isSameNode(updated), 'same node')
+  t.equal(updated.innerText, 'world', 'content updated')
   document.body.removeChild(div)
   t.end()
 
@@ -67,9 +77,13 @@ test('persists in DOM between mounts', function (t) {
   }
 
   function name (text) {
-    return html`<span class="content">${text}</span>`
+    return html`<span id="${id}">${text}</span>`
   }
 })
+
+function makeID () {
+  return 'uid-' + Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
+}
 
 // test('creates an element', function (t) {
 //   t.plan(5)

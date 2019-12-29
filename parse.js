@@ -144,26 +144,36 @@ function parse (template, ...values) {
         if (isPlaceholder(child)) {
           // Child is a partial
           var index = getPlaceholderIndex(child)
+          var partial = values[index]
           child = document.createComment('placeholder')
 
           // Handle partial component
-          if (typeof values[index] === 'object' && values[index].key) {
+          if (typeof partial === 'object' && partial.key) {
             // Use key to determine if nodes are equal
             // Node -> bool
             child.isSameNode = function isSameNode (node) {
               var cached = cache.get(node)
-              return cached && cached.key === values[index].key
+              return cached && cached.key === partial.key
             }
 
             // Expose interface for binding placeholder to an existing updater
             cache.set(child, {
-              key: values[index].key,
+              key: partial.key,
               bind (node) {
                 var cached = cache.get(node)
                 assert(cached, 'nanohtml: cannot bind to uncached node')
+                // Replace placeholder updater with existing nodes' updater
                 var editor = editors.find((editor) => editor.index === index)
                 editor.update = function update (value) {
-                  return cached.update([value])
+                  var values
+                  if (typeof value === 'object' && value.key === partial.key) {
+                    // Forward partial values
+                    values = partial.values
+                  } else {
+                    // Wrap value in array
+                    values = [value]
+                  }
+                  return cached.update(values)
                 }
               }
             })
@@ -190,6 +200,7 @@ function parse (template, ...values) {
         element.appendChild(child)
 
         // Update/render node in-place
+        // TODO: Handle null values
         // any -> void
         function update (newChild) {
           if (_update && newChild.values) {
