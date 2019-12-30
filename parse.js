@@ -139,8 +139,9 @@ function parse (template, ...values) {
       })
 
       // Handle element children, generate placeholders and hook up editors
-      children.forEach(function (child) {
+      children.forEach(function (child, i, list) {
         var _update
+
         if (isPlaceholder(child)) {
           // Child is a partial
           var index = getPlaceholderIndex(child)
@@ -194,18 +195,29 @@ function parse (template, ...values) {
             editors = editors.concat(res.editors)
             child = res.element
           }
+        } else {
+          child = toNode(child)
+          cache.set(child, {
+            key: child.template,
+            bind (node) {
+              list[i] = node
+            }
+          })
         }
 
-        child = toNode(child)
+        // Save reference to current child
+        list[i] = child
+
+        // Append child
         element.appendChild(child)
 
         // Update/render node in-place
-        // TODO: Handle null values
+        // TODO: Handle varying partials
         // any -> void
         function update (newChild) {
-          if (_update && newChild.values) {
+          if (_update && newChild && newChild.values) {
             return _update(newChild.values)
-          } else if (newChild.key && newChild.render) {
+          } else if (newChild && newChild.key && newChild.render) {
             var res = newChild.render()
             _update = res.update
             res.update(newChild.values)
@@ -213,8 +225,24 @@ function parse (template, ...values) {
             child = newChild
           } else {
             newChild = toNode(newChild)
-            replaceChild(child, newChild)
-            child = newChild
+            if (newChild == null) {
+              removeChild(child)
+            } else {
+              if (list[i] == null) {
+                var next = i + 1
+                while (next < list.length && list[next] == null) next++
+                if (next === list.length) {
+                  element.appendChild(newChild)
+                } else {
+                  element.insertBefore(newChild, list[next])
+                }
+              } else {
+                replaceChild(child, newChild)
+              }
+            }
+
+            // Update references to current child
+            list[i] = child = newChild
           }
         }
       })
@@ -266,6 +294,18 @@ function parse (template, ...values) {
         }
       }
 
+      // Remove child from element
+      // any -> void
+      function removeChild (child) {
+        if (Array.isArray(child)) {
+          while (child.length) {
+            element.removeChild(child.pop())
+          }
+        } else {
+          element.removeChild(child)
+        }
+      }
+
       // Replace one element with another
       // (Node, Node) -> void
       function replaceChild (oldChild, newChild) {
@@ -304,6 +344,10 @@ function getPlaceholderIndex (placeholder) {
 // any -> Node
 function toNode (value) {
   var type = typeof value
+
+  if (value == null) {
+    return null
+  }
 
   if (type === 'object' && value.nodeType) {
     return value

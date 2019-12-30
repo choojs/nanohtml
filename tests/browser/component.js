@@ -81,6 +81,27 @@ test('persists in DOM between mounts', function (t) {
   }
 })
 
+test('updating with null', function (t) {
+  var id = makeID()
+  var div = document.createElement('div')
+  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  document.body.appendChild(div)
+
+  render(main('planet'), div)
+  var res = document.getElementById(id)
+  t.equal(res.innerHTML, 'Hello planet!', 'did mount')
+  render(main(false), div)
+  t.equal(res.innerHTML, 'Hello !', 'node was removed')
+  render(main('world'), div)
+  t.equal(res.innerHTML, 'Hello world!', 'node added back')
+  document.body.removeChild(div)
+  t.end()
+
+  function main (text) {
+    return html`<div><span id="${id}">Hello ${text || null}!</span></div>`
+  }
+})
+
 function makeID () {
   return 'uid-' + Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
 }
