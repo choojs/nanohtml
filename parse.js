@@ -153,9 +153,10 @@ function parse (template, ...values) {
           child = document.createComment('placeholder')
 
           // Handle partial component
-          // TODO: Handle initial value being null
-          if (typeof partial === 'object' && partial.key) {
-            // Use key to determine if nodes are equal
+          // If we know upfront that there's going to be a partial in this slot
+          // we can expose means to bind the placeholder to an existing updater
+          if (partial && typeof partial === 'object' && partial.key) {
+            // Determine if the placeholder is interchangeable with node
             // Node -> bool
             child.isSameNode = function isSameNode (node) {
               var cached = cache.get(node)
