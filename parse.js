@@ -139,8 +139,12 @@ function parse (template, ...values) {
       })
 
       // Handle element children, generate placeholders and hook up editors
-      children.forEach(function (child, i, list) {
-        var _update
+      // There's a lot going on here; We use a reduce to create a scope wherein
+      // we can store relevant references to the last rendered node (child).
+      // We use the accumulator (children) to keep track of childrens' relative
+      // indexes, which is usefull when nodes are removed and added back again.
+      children.reduce(function (children, child, i) {
+        var _update, _key
 
         if (isPlaceholder(child)) {
           // Child is a partial
@@ -149,6 +153,7 @@ function parse (template, ...values) {
           child = document.createComment('placeholder')
 
           // Handle partial component
+          // TODO: Handle initial value being null
           if (typeof partial === 'object' && partial.key) {
             // Use key to determine if nodes are equal
             // Node -> bool
@@ -196,56 +201,61 @@ function parse (template, ...values) {
             child = res.element
           }
         } else {
+          // Child is inline content, i.e. TextNode
           child = toNode(child)
           cache.set(child, {
             key: child.template,
             bind (node) {
-              list[i] = node
+              children[i] = node
             }
           })
         }
 
         // Save reference to current child
-        list[i] = child
+        children[i] = child
 
         // Append child
         element.appendChild(child)
 
+        // Return accumulator for next child to append to
+        return children
+
         // Update/render node in-place
-        // TODO: Handle varying partials
         // any -> void
         function update (newChild) {
-          if (_update && newChild && newChild.values) {
-            return _update(newChild.values)
-          } else if (newChild && newChild.key && newChild.render) {
-            var res = newChild.render()
-            _update = res.update
-            res.update(newChild.values)
-            replaceChild(child, res.element)
-            child = newChild
-          } else {
-            newChild = toNode(newChild)
-            if (newChild == null) {
-              removeChild(child)
-            } else {
-              if (list[i] == null) {
-                var next = i + 1
-                while (next < list.length && list[next] == null) next++
-                if (next === list.length) {
-                  element.appendChild(newChild)
-                } else {
-                  element.insertBefore(newChild, list[next])
-                }
-              } else {
-                replaceChild(child, newChild)
+          if (newChild && typeof newChild === 'object') {
+            if (_update && newChild.key === _key) {
+              return _update(newChild.values)
+            } else if (typeof newChild.render === 'function') {
+              var res = newChild.render()
+              if (typeof res.update === 'function') {
+                res.update(newChild.values)
+                _key = newChild.key
+                _update = res.update
+                newChild = res.element
               }
             }
-
-            // Update references to current child
-            list[i] = child = newChild
           }
+
+          newChild = toNode(newChild)
+          if (newChild == null) {
+            removeChild(child)
+          } else if (children[i] == null) {
+            var next = i + 1
+            while (next < children.length && children[next] == null) next++
+            if (next === children.length) {
+              element.appendChild(newChild)
+            } else {
+              element.insertBefore(newChild, children[next])
+            }
+          } else {
+            replaceChild(child, newChild)
+          }
+
+          // Update references to current child
+          children[i] = child = newChild
         }
-      })
+      }, [])
 
       return { element, editors, bind }
 

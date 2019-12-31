@@ -102,6 +102,27 @@ test('updating with null', function (t) {
   }
 })
 
+test('different partials', function (t) {
+  var id = makeID()
+  var world = html`<span>world</span>`
+  var planet = html`<span>planet</span>`
+  var div = document.createElement('div')
+  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  document.body.appendChild(div)
+
+  render(main(planet), div)
+  var res = document.getElementById(id)
+  t.equal(res.innerText, 'Hello planet!', 'did mount')
+  render(main(world), div)
+  t.equal(res.innerText, 'Hello world!', 'did update')
+  document.body.removeChild(div)
+  t.end()
+
+  function main (child) {
+    return html`<div><span id="${id}">Hello ${child}!</span></div>`
+  }
+})
+
 function makeID () {
   return 'uid-' + Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
 }
