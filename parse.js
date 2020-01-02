@@ -140,12 +140,10 @@ function parse (template, ...values) {
 
       // Handle element children, generate placeholders and hook up editors
       // There's a lot going on here; We use a reduce to create a scope wherein
-      // we can store relevant references to the last rendered node (child).
+      // we can reference the last rendered node (child) and it's siblings.
       // We use the accumulator (children) to keep track of childrens' relative
       // indexes, which is usefull when nodes are removed and added back again.
       children.reduce(function (children, child, i) {
-        var _update, _key
-
         if (isPlaceholder(child)) {
           // Child is a partial
           var index = getPlaceholderIndex(child)
@@ -154,7 +152,9 @@ function parse (template, ...values) {
 
           // Handle partial component
           // If we know upfront that there's going to be a partial in this slot
-          // we can expose means to bind the placeholder to an existing updater
+          // we can expose means to bind the placeholder to an existing updater.
+          // This avoids having to re-render an identical element when mounting
+          // one view onto another and they e.g. share the same header element.
           if (partial && typeof partial === 'object' && partial.key) {
             // Determine if the placeholder is interchangeable with node
             // Node -> bool
@@ -212,45 +212,123 @@ function parse (template, ...values) {
           })
         }
 
-        // Save reference to current child
-        children[i] = child
-
         // Append child
         element.appendChild(child)
 
-        // Return accumulator for next child to append to
+        // Update and forward accumulator to the next child
+        children[i] = child
         return children
 
         // Update/render node in-place
         // any -> void
         function update (newChild) {
+          var cached = cache.get(child)
           if (newChild && typeof newChild === 'object') {
-            if (_update && newChild.key === _key) {
-              return _update(newChild.values)
+            if (cached && cached.update && newChild.key === cached.key) {
+              return cached.update(newChild.values)
             } else if (typeof newChild.render === 'function') {
               var res = newChild.render()
               if (typeof res.update === 'function') {
                 res.update(newChild.values)
-                _key = newChild.key
-                _update = res.update
                 newChild = res.element
               }
             }
           }
 
-          newChild = toNode(newChild)
-          if (newChild == null) {
-            removeChild(child)
-          } else if (children[i] == null) {
-            var next = i + 1
-            while (next < children.length && children[next] == null) next++
-            if (next === children.length) {
-              element.appendChild(newChild)
-            } else {
-              element.insertBefore(newChild, children[next])
-            }
+          if (Array.isArray(newChild)) {
+            var oldChildren = Array.isArray(child) ? child.slice() : [child]
+            newChild = flatten(newChild).reduce(function (newChildren, value, index) {
+              var match
+              if (value && value.key) {
+                // Look among siblings for a compatible element
+                for (var i = 0, len = oldChildren.length; i < len; i++) {
+                  match = cache.get(oldChildren[i])
+                  if (match && match.key === value.key) {
+                    // Update matching element
+                    match.update(value.values)
+
+                    // Save updated element
+                    newChildren.push(oldChildren[i])
+
+                    if (i !== index) {
+                      var next
+
+                      // Figure out which element should be next sibling
+                      if (oldChildren.length - 1 >= index) {
+                        next = oldChildren[index]
+                      } else {
+                        next = newChildren[newChildren.length - 1]
+                        next = next && next.nextSibling
+                      }
+
+                      // Move matched element into place
+                      if (next) {
+                        element.insertBefore(oldChildren[i], next)
+                      } else {
+                        element.appendChild(oldChildren[i])
+                      }
+                    }
+
+                    // Drop reference so that it's not updated more than once
+                    len--
+                    oldChildren.splice(i, 1)
+                    return newChildren
+                  }
+                }
+
+                if (typeof value.render === 'function') {
+                  var res = value.render()
+                  if (typeof res.update === 'function') {
+                    res.update(value.values)
+                    if (newChildren.length) {
+                      match = newChildren[newChildren.length - 1]
+                      match = match && match.nextSibling
+                    } else if (children.length > i) {
+                      match = children.slice(i + 1).find(Boolean)
+                      if (Array.isArray(match)) match = match[0]
+                    }
+
+                    if (match) {
+                      element.insertBefore(res.element, match)
+                    } else {
+                      element.appendChild(res.element)
+                    }
+
+                    newChildren.push(res.element)
+                    return newChildren
+                  }
+                }
+              }
+
+              value = toNode(child)
+              if (child.length >= index) {
+                replaceChild(child[index], value)
+              } else {
+                element.appendChild(value)
+              }
+              newChildren.push(value)
+              return newChildren
+            }, [])
+
+            // Remove excess legacy children
+            removeChild(oldChildren)
           } else {
-            replaceChild(child, newChild)
+            newChild = toNode(newChild)
+            if (newChild == null) {
+              removeChild(child)
+            } else if (children[i] == null) {
+              var next = i + 1
+              while (next < children.length && children[next] == null) next++
+              if (next === children.length) {
+                element.appendChild(newChild)
+              } else {
+                next = children[next]
+                if (Array.isArray(next)) next = next[0]
+                element.insertBefore(newChild, next)
+              }
+            } else {
+              replaceChild(child, newChild)
+            }
           }
 
           // Update references to current child
@@ -330,6 +408,18 @@ function parse (template, ...values) {
       }
     }
   }
+}
+
+// Recursively flatten an array
+// arr -> arr
+function flatten (arr) {
+  return arr.reduce(function flat (acc, value) {
+    if (Array.isArray(value)) {
+      return acc.concat(value.reduce(flat, []))
+    }
+    acc.push(value)
+    return acc
+  }, [])
 }
 
 // Determine wether given value is a placeholder value

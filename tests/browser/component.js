@@ -17,6 +17,13 @@ test('renders nested html', function (t) {
   t.end()
 })
 
+test('renders array of children', function (t) {
+  var el = render(html`<span>Hello ${[html`<span>planet</span>`]}!</span>`)
+  t.equal(el.childElementCount, 1, 'has children')
+  t.equal(el.firstElementChild.innerText, 'planet', 'children rendered')
+  t.end()
+})
+
 test('can mount in DOM', function (t) {
   var id = makeID()
   var div = document.createElement('div')
@@ -123,7 +130,7 @@ test('updating from null', function (t) {
   }
 })
 
-test('different partials', function (t) {
+test('alternating partials', function (t) {
   var id = makeID()
   var world = html`<span>world</span>`
   var planet = html`<span>planet</span>`
@@ -144,59 +151,32 @@ test('different partials', function (t) {
   }
 })
 
+test('reordering children', function (t) {
+  var ids = [makeID(), makeID()]
+  var children = [
+    html`<span id="${ids[0]}">world</span>`,
+    html`<span id="${ids[1]}">planet</span>`
+  ]
+  var div = document.createElement('div')
+  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  document.body.appendChild(div)
+
+  render(main(children), div)
+  var world = document.getElementById(ids[0])
+  var planet = document.getElementById(ids[1])
+  t.equal(world.nextSibling, planet, 'mounted in order')
+  t.equal(div.innerText, 'Hello worldplanet!', 'all children in order')
+  render(main(children.reverse()), div)
+  t.equal(planet.nextSibling, world, 'children reordered')
+  t.equal(div.innerText, 'Hello planetworld!', 'all children in order')
+  document.body.removeChild(div)
+  t.end()
+
+  function main (children) {
+    return html`<div><span>Hello ${children}!</span></div>`
+  }
+})
+
 function makeID () {
   return 'uid-' + Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
 }
-
-// test('creates an element', function (t) {
-//   t.plan(5)
-
-//   var greeting = component(function (name) {
-//     return html`<span>Hello ${name}!</span>`
-//   })
-
-//   t.equal(typeof greeting, 'function', 'component exposes function')
-//   var create = greeting('planet')
-//   t.equal(typeof create, 'function', 'component returns a function')
-//   var update = create()
-//   t.equal(typeof update, 'function', 'component function returns a function')
-//   var element = update()
-//   t.ok(element instanceof window.Element, 'renders an element')
-//   t.equal(element.outerHTML, '<span>Hello planet!</span>', 'html matches')
-// })
-
-// test('renders one-off components', function (t) {
-//   t.plan(2)
-
-//   var greeting = component(function (name) {
-//     return html`<span>Hello ${name}!</span>`
-//   })
-
-//   var res = render(html`
-//     <div>
-//       ${greeting('planet')}
-//       ${greeting('world')}
-//     </div>
-//   `)
-
-//   t.ok(res instanceof window.Element, 'renders an element')
-//   t.equal(res.outerHTML, `<div><span>Hello planet!</span> <span>Hello world!</span></div>`, 'html matches')
-// })
-
-// test('updates in-place', function (t) {
-//   t.plan(2)
-
-//   var greeting = component(function (name) {
-//     return html`<span>Hello ${name}!</span>`
-//   })
-
-//   var res = render(html`
-//     <body>
-//       ${greeting('planet')}
-//       ${greeting('world')}
-//     </body>
-//   `, document.body)
-
-//   t.equal(res, document.body, 'return target')
-//   t.equal(res.outerHTML, `<body><span>Hello planet!</span> <span>Hello world!</span></body>`, 'html matches')
-// })
