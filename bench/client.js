@@ -1,13 +1,17 @@
 var nanobench = require('nanobench')
 
-var nanoHtml = require('../')
+var render = require('../render')
+var nanoHtml = require('../html')
 var createApp = require('./fixtures/app')
 
 nanobench('nanohtml browser 10000 iterations', function (b) {
   var app = createApp(nanoHtml)
-  for (var i = 0; i < 100; i++) app.render().toString()
+  var div = document.createElement('div')
+
+  document.body.appendChild(div)
+  for (var i = 0; i < 100; i++) render(app.render(), div)
 
   b.start()
-  for (i = 0; i < 10000; i++) app.render().toString()
+  for (i = 0; i < 10000; i++) render(app.render(), div)
   b.end()
 })

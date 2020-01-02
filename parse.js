@@ -314,9 +314,9 @@ function parse (template, ...values) {
             removeChild(oldChildren)
           } else {
             newChild = toNode(newChild)
-            if (newChild == null) {
+            if (newChild == null && child) {
               removeChild(child)
-            } else if (children[i] == null) {
+            } else if (newChild && child == null) {
               var next = i + 1
               while (next < children.length && children[next] == null) next++
               if (next === children.length) {
@@ -326,7 +326,7 @@ function parse (template, ...values) {
                 if (Array.isArray(next)) next = next[0]
                 element.insertBefore(newChild, next)
               }
-            } else {
+            } else if (child && newChild) {
               replaceChild(child, newChild)
             }
           }
