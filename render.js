@@ -3,13 +3,13 @@ var cache = require('./cache')
 
 module.exports = function render (tmpl, target) {
   if (typeof window === 'undefined') return tmpl
-  var res = target && cache.get(target)
-  if (res && res.key === tmpl.key) {
-    res.update(tmpl.values)
+  var ref = target && cache.get(target)
+  if (ref && ref.key === tmpl.key) {
+    ref.update(tmpl.values())
     return target
   }
 
-  res = tmpl.render()
+  var res = tmpl.render()
 
   var element
   if (target) {
@@ -18,7 +18,7 @@ module.exports = function render (tmpl, target) {
     element = res.element
   }
 
-  res.update(tmpl.values)
+  res.update(tmpl.values())
 
   return element
 }
