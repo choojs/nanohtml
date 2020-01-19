@@ -1,5 +1,5 @@
 var test = require('tape')
-// var component = require('../../component')
+// var Component = require('../../component')
 var render = require('../../render')
 var html = require('../../html')
 
@@ -165,10 +165,10 @@ test('reordering children', function (t) {
   var world = document.getElementById(ids[0])
   var planet = document.getElementById(ids[1])
   t.equal(world.nextSibling, planet, 'mounted in order')
-  t.equal(div.innerText, 'Hello worldplanet!', 'all children in order')
+  t.equal(div.innerText, 'Hello worldplanet!', 'children in order')
   render(main(children.reverse()), div)
   t.equal(planet.nextSibling, world, 'children reordered')
-  t.equal(div.innerText, 'Hello planetworld!', 'all children in order')
+  t.equal(div.innerText, 'Hello planetworld!', 'children in (reversed) order')
   document.body.removeChild(div)
   t.end()
 

@@ -1,7 +1,7 @@
 var assert = require('assert')
 var hyperx = require('hyperx')
-var Ref = require('./ref')
 var cache = require('./cache')
+var Ref = require('./ref')
 var Partial = require('./partial')
 var SVG_TAGS = require('./lib/svg-tags')
 var BOOL_PROPS = require('./lib/bool-props')
@@ -14,9 +14,8 @@ var COMMENT_TAG = '!--'
 
 module.exports = Template
 
-function Template (template, values, tag, props, children) {
-  this.key = template
-  this.values = values
+function Template (partial, tag, props, children) {
+  this.partial = partial
   this.tag = tag
   this.namespace = null
   this.children = children
@@ -41,9 +40,9 @@ function Template (template, values, tag, props, children) {
   }
 }
 
-Template.parse = function parse (template, values) {
+Template.parse = function parse (partial) {
   // Create indexed placeholders for all values
-  var placeholders = values.map(function (v, index) {
+  var placeholders = partial.values.map(function (v, index) {
     return '\0placeholder' + index + '\0'
   })
 
@@ -52,74 +51,71 @@ Template.parse = function parse (template, values) {
     createFragment: createFragment
   })
 
-  return parser(template, ...placeholders)
+  return parser(partial.template, ...placeholders)
 
   function createTemplate (tag, props, children) {
-    return new Template(template, values, tag, props, children)
+    return new Template(partial, tag, props, children)
   }
 }
 
 Template.prototype.render = function render () {
-  var key = this.key
-  var values = this.values
-  var tag = this.tag
-  var props = this.props
-  var ns = this.namespace
-  var children = this.children
-  var isCustomElement = this.isCustomElement
   var element
+  var self = this
   var editors = []
 
   // Create the element
-  if (ns) {
-    if (isCustomElement) {
-      element = document.createElementNS(ns, tag, { is: isCustomElement })
+  if (this.namespace) {
+    if (this.isCustomElement) {
+      element = document.createElementNS(this.namespace, this.tag, {
+        is: this.isCustomElement
+      })
     } else {
-      element = document.createElementNS(ns, tag)
+      element = document.createElementNS(this.namespace, this.tag)
     }
-  } else if (tag === COMMENT_TAG) {
-    return document.createComment(props.comment)
-  } else if (isCustomElement) {
-    element = document.createElement(tag, { is: isCustomElement })
+  } else if (this.tag === COMMENT_TAG) {
+    return document.createComment(this.props.comment)
+  } else if (this.isCustomElement) {
+    element = document.createElement(this.tag, { is: this.isCustomElement })
   } else {
-    element = document.createElement(tag)
+    element = document.createElement(this.tag)
   }
 
   // Handle element properties, hooking up placeholders
-  Object.keys(props).forEach(function (name, i) {
+  Object.keys(this.props).forEach(function (name, i) {
+    var value = self.props[name]
     if (isPlaceholder(name)) {
       editors.push({
         index: getPlaceholderIndex(name),
         update: function (nameValue) {
-          setAttribute(nameValue, props[nameValue])
+          setAttribute(nameValue, self.props[nameValue])
         }
       })
       return
     }
-    if (isPlaceholder(props[name])) {
+    if (isPlaceholder(value)) {
       editors.push({
-        index: getPlaceholderIndex(props[name]),
+        index: getPlaceholderIndex(value),
         update: function (value) {
           setAttribute(name, value)
         }
       })
       return
     }
-    if (/\0placeholder/.test(props[name])) {
-      props[name].replace(PLACEHOLDER_INDEX, function (placeholder) {
+    if (/\0placeholder/.test(value)) {
+      value.replace(PLACEHOLDER_INDEX, function (placeholder) {
         editors.push({
           index: getPlaceholderIndex(placeholder),
           update (_, all) {
-            var value = props[name].replace(PLACEHOLDER_INDEX, function (_, index) {
+            var next = value.replace(PLACEHOLDER_INDEX, function (_, index) {
               return all[index]
             })
-            setAttribute(name, value)
+            setAttribute(name, next)
           }
         })
       })
       return
     }
-    setAttribute(name, props[name])
+    setAttribute(name, value)
   })
 
   // Handle element children, generate placeholders and hook up editors
@@ -127,11 +123,11 @@ Template.prototype.render = function render () {
   // we can reference the last rendered node (child) and it's siblings.
   // We use the accumulator (children) to keep track of childrens' relative
   // indexes, which is usefull when nodes are removed and added back again.
-  children.reduce(function mapChildren (children, child, i) {
+  this.children.reduce(function mapChildren (children, child, i) {
     if (isPlaceholder(child)) {
       // Child is a partial
       var index = getPlaceholderIndex(child)
-      var partial = values[index]
+      var partial = self.partial.values[index]
       child = document.createComment('placeholder')
 
       // Handle partial
@@ -144,28 +140,25 @@ Template.prototype.render = function render () {
         // Node -> bool
         child.isSameNode = function isSameNode (node) {
           var cached = cache.get(node)
-          return cached && cached.key === partial.key
+          return cached && cached instanceof Partial && cached.key === partial.key
         }
 
         // Expose interface for binding placeholder to an existing updater
-        cache.set(child, new Ref({
-          key: partial.key,
-          bind (node) {
-            var cached = cache.get(node)
-            assert(cached, 'nanohtml: cannot bind to uncached node')
-            // Replace placeholder updater with existing nodes' updater
-            var editor = editors.find((editor) => editor.index === index)
-            editor.update = function update (value) {
-              var values
-              if (value instanceof Partial) {
-                // Forward partial values
-                values = value.values()
-              } else {
-                // Wrap value in array
-                values = [value]
-              }
-              return cached.update(values)
+        cache.set(child, new Ref(partial, function bind (node) {
+          var ctx = cache.get(node)
+          assert(ctx, 'nanohtml: cannot bind to uncached node')
+          // Replace placeholder updater with existing nodes' updater
+          var editor = editors.find((editor) => editor.index === index)
+          editor.update = function update (value) {
+            var values
+            if (value instanceof Partial) {
+              // Forward partial values
+              values = value.values
+            } else {
+              // Wrap value in array
+              values = [value]
             }
+            return ctx.update(values)
           }
         }))
       }
@@ -177,22 +170,14 @@ Template.prototype.render = function render () {
     } else if (child instanceof Template) {
       // Child is an inline child node of element
       var res = child.render()
-      if (res && res.element && res.editors) {
-        cache.set(res.element, new Ref({
-          key: child.key,
-          bind: res.bind
-        }))
-        editors = editors.concat(res.editors)
-        child = res.element
-      }
+      cache.set(res.element, new Ref(child.partial, res.bind))
+      editors = editors.concat(res.editors)
+      child = res.element
     } else {
       // Child is inline content, i.e. TextNode
       child = toNode(child)
-      cache.set(child, new Ref({
-        key: key,
-        bind (node) {
-          children[i] = node
-        }
+      cache.set(child, new Ref(self.partial, function bind (node) {
+        children[i] = node
       }))
     }
 
@@ -206,28 +191,17 @@ Template.prototype.render = function render () {
     // Update/render node in-place
     // any -> void
     function update (newChild) {
-      var ref = cache.get(child)
-      if (newChild instanceof Partial) {
-        if (ref instanceof Ref && ref.key === newChild.key && ref.update) {
-          return ref.update(newChild.values())
-        } else {
-          var res = newChild.render()
-          res.update(newChild.values())
-          newChild = res.element
-        }
-      }
-
       if (Array.isArray(newChild)) {
         var oldChildren = Array.isArray(child) ? child.slice() : [child]
         newChild = flatten(newChild).reduce(function mapChild (newChildren, value, index) {
-          var match
           if (value instanceof Partial) {
+            var ref
             // Look among siblings for a compatible element
             for (var i = 0, len = oldChildren.length; i < len; i++) {
-              match = cache.get(oldChildren[i])
-              if (match instanceof Ref && match.key === value.key) {
+              ref = cache.get(oldChildren[i])
+              if (ref instanceof Ref && ref.key === value.key) {
                 // Update matching element
-                match.update(value.values())
+                ref.update(value.values)
 
                 // Save updated element
                 newChildren.push(oldChildren[i])
@@ -259,8 +233,10 @@ Template.prototype.render = function render () {
             }
 
             // Create a new element if no match was found
+            var match
             var res = value.render()
-            res.update(value.values())
+            ref = cache.get(res.element)
+            res.update(value.values)
             if (newChildren.length) {
               // Find next sibling adjacent to previously inserted node
               match = newChildren[newChildren.length - 1]
@@ -281,7 +257,7 @@ Template.prototype.render = function render () {
             return newChildren
           }
 
-          value = toNode(child)
+          value = toNode(value)
           if (child.length >= index) {
             replaceChild(child[index], value)
           } else {
@@ -294,6 +270,18 @@ Template.prototype.render = function render () {
         // Remove excess legacy children
         removeChild(oldChildren)
       } else {
+        if (newChild instanceof Partial) {
+          var ref = cache.get(child)
+          if (ref instanceof Ref && ref.key === newChild.key && ref.update) {
+            return ref.update(newChild.values)
+          } else {
+            var res = newChild.render()
+            ref = cache.get(res.element)
+            res.update(newChild.values)
+            newChild = res.element
+          }
+        }
+
         newChild = toNode(newChild)
         if (newChild == null && child) {
           removeChild(child)
@@ -350,7 +338,7 @@ Template.prototype.render = function render () {
     if (key.slice(0, 2) === 'on' || DIRECT_PROPS.indexOf(key) !== -1) {
       element[name] = value
     } else {
-      if (ns) {
+      if (self.namespace) {
         if (name === 'xlink:href') {
           element.setAttributeNS(XLINKNS, name, value)
         } else if (/^xmlns($|:)/i.test(name)) {

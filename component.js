@@ -1,187 +1,110 @@
 var assert = require('assert')
-var hyperx = require('hyperx')
+var Partial = require('./partial')
+var Context = require('./context')
 
-module.exports = component
+var stack = []
 
-function component (render) {
-  var template
-  var stack = []
+module.exports = Component
 
-  return function Render () {
-    var args = Array.prototype.slice.call(arguments)
-    var parsed = render.apply(undefined, args)
-    if (typeof window === 'undefined') return parsed
+function Component (key, render, args) {
+  if (this instanceof Component) {
+    assert(key, 'nanohtml: Component key is required')
+    this.key = key
+    render = typeof render === 'function' ? render : this.render.bind(this)
+    return Render
+  }
 
-    stack.push(args)
+  if (typeof key === 'function') {
+    render = key
+    key = render.name || 'component'
+  }
+  assert(typeof render === 'function', 'nanohtml: render should be type function')
+  key = typeof key === 'string' ? Symbol(key) : key
+  return function Proxy () {
+    if (this instanceof Proxy) return new Component(arguments[0], render)
+    args = Array.prototype.slice.call(arguments)
+    return Render
+  }
 
-    // reset stack on next frame if not all components were updated
-    window.requestAnimationFrame(function () {
-      var prev = stack
-      stack = []
-      assert(prev.length === 0, 'nanohtml: more components rendered than used')
-    })
-
-    return function createElement (context) {
-      if (!template) {
-        // parse template when first rendered
-        template = parse.apply(null, [parsed.template].concat(
-          parsed.values.map(function (v, index) {
-            return '\0placeholder' + index + '\0'
-          })
-        ))
-      }
-
-      var res = template()
-      var element = res.element
-      var updaters = res.editors.sort(function (a, b) {
-        return a.index - b.index
-      }).map(function (editor) {
-        return editor.update
-      })
-
-      element.isSameNode = function isSameNode (node) {
-        return node === createElement
-      }
-
-      return update
-
-      function update () {
-        var values = stack.shift()
-        assert.equal(values.length, updaters.length, 'number of values (' + values.length + ') must match number of slots (' + updaters.length + ')')
-        for (var i = 0, len = values.length; i < len; i++) {
-          updaters[i](values[i], values)
-        }
-        return element
-      }
+  function Render (ctx) {
+    assert(ctx instanceof Context, 'nanohtml: context should be type Context')
+    stack.push(ctx)
+    try {
+      var res = render.apply(undefined, args)
+      assert(res instanceof Partial, 'nanohtml: component should return html partial')
+      res.key = key
+      return res
+    } finally {
+      var last = stack.pop()
+      assert(last === ctx, 'nanohtml: context mismatch, render cycle out of sync')
+      assert(ctx.counter === 0, 'nanohtml: context failed to rollback counter')
     }
   }
 }
 
-function isPlaceholder (value) {
-  return typeof value === 'string' && /^\0placeholder/.test(value)
+Component.Component = Component
+Component.prototype = Object.create(Partial.prototype)
+Component.prototype.constructor = Component
+
+Component.prototype.render = function render () {
+  throw new Error('nanohtml: render should be implemented')
 }
 
-function getPlaceholderIndex (placeholder) {
-  return parseInt(placeholder.slice('\0placeholder'.length))
-}
-
-function toNode (value) {
-  var type = typeof value
-
-  if (type === 'object' && value.nodeType) {
-    return value
-  }
-
-  // if (type === 'function') {
-  //   value = value()
-  // }
-
-  if (type === 'function' || type === 'string' || type === 'boolean' ||
-      value instanceof RegExp || value instanceof Date) {
-    value = value.toString()
-  }
-
-  if (typeof value === 'string') {
-    return document.createTextNode(value)
-  }
-
-  if (Array.isArray(value)) {
-    return toDocumentFragment(value)
-  }
-}
-function toDocumentFragment (nodes) {
-  var node = document.createDocumentFragment()
-  for (var i = 0; i < nodes.length; i++) {
-    node.appendChild(nodes[i])
-  }
-  return node
-}
-
-var parse = hyperx(function (tagName, props, children) {
+Component.useKey = function useKey (Fn, key) {
   return function () {
-    var el = document.createElement(tagName)
-    var editors = []
-    var names = Object.keys(props)
-    names.forEach(function (name, i) {
-      if (isPlaceholder(name)) {
-        editors.push({
-          index: getPlaceholderIndex(name),
-          update: function (nameValue) {
-            setAttribute(nameValue, props[nameValue])
-          }
-        })
-        return
-      }
-      if (isPlaceholder(props[name])) {
-        editors.push({
-          index: getPlaceholderIndex(props[name]),
-          update: function (value) {
-            setAttribute(name, value)
-          }
-        })
-        return
-      }
-      if (/\0placeholder/.test(props[name])) {
-        props[name].replace(/\0placeholder(\d+)\0/g, function (placeholder) {
-          editors.push({
-            index: getPlaceholderIndex(placeholder),
-            update: updater
-          })
-        })
-        function updater (_, all) {
-          var value = props[name].replace(/\0placeholder(\d+)\0/g, function (_, index) {
-            return all[index]
-          })
-          setAttribute(name, value)
-        }
-        return
-      }
-      setAttribute(name, props[name])
-    })
-
-    for (var i = 0, len = children.length; i < len; i++) {
-      var child = children[i]
-      if (isPlaceholder(child)) {
-        var index = getPlaceholderIndex(child)
-        child = document.createComment('placeholder')
-        editors.push({
-          index: index,
-          update: (function (oldChild) {
-            return function (newChild) {
-              newChild = Array.isArray(newChild) ? newChild.map(toNode) : toNode(newChild)
-              replaceChild(oldChild, newChild)
-              oldChild = newChild
-            }
-          }(child))
-        })
-      } else if (child && child.element && child.editors) {
-        editors = editors.concat(child.editors)
-        child = child.element
-      }
-      el.appendChild(toNode(child))
-    }
-
-    return { element: el, editors: editors }
-
-    function setAttribute (name, value) {
-      if (/^on/.test(name)) {
-        el[name] = value
-      } else {
-        el.setAttribute(name, value)
-      }
-    }
-
-    function replaceChild (oldChild, newChild) {
-      if (Array.isArray(oldChild)) {
-        while (oldChild.length > 1) {
-          el.removeChild(oldChild.pop())
-        }
-        oldChild = oldChild[0]
-      }
-      if (Array.isArray(newChild)) {
-        newChild = toDocumentFragment(newChild)
-      }
-      el.replaceChild(newChild, oldChild)
+    var args = Array.prototype.slice.call(arguments)
+    try {
+      // Create component (Functional/Class)
+      var res = new Fn(key)
+      return res.apply(undefined, args)
+    } catch (err) {
+      // Create Partial with custom key
+      return Object.assign(Fn.apply(undefined, args), { key: key })
     }
   }
+}
+
+Component.useState = function useState (initialState) {
+  var ctx = stack[stack.length - 1]
+  var index = ++ctx.counter
+  var state = index >= ctx.stack.length
+    ? ctx.stack[index] = initialState
+    : ctx.stack[index]
+  ctx.counter--
+  return [state, setState]
+
+  function setState (next) {
+    ctx.stack[index] = next
+    ctx.render()
+  }
+}
+
+/*
+var Foo = Component(function Foo () {
+  // use hooks here
+  return html`<span>${'Foo'}</span>`
 })
+
+class Bar extends Component {
+  // use methods here
+  render () {
+    return html`<span>Bar</span>`
+  }
+}
+
+var Baz = function () {
+  // no hooks allowed
+  return html`<span>${'Baz'}</span>`
+}
+
+var myBar = new Bar('bar-key')
+
+html`
+  <div>${Baz('unkeyed-baz')}</div>
+  <div>${Foo('unkeyed-foo')}</div>
+  <div>${myBar('keyed-bar')}</div>
+  <div>${useKey(Baz, 'baz-key')('keyed-baz')}</div>
+  <div>${useKey(Foo, 'foo-key')('keyed-foo')}</div>
+  <div>${useKey(Bar, 'bar-key')('keyed-bar')}</div>
+`
+*/
