@@ -3,6 +3,7 @@ var hyperx = require('hyperx')
 var Ref = require('./ref')
 var cache = require('./cache')
 var Partial = require('./partial')
+var Component = require('./component')
 var SVG_TAGS = require('./lib/svg-tags')
 var BOOL_PROPS = require('./lib/bool-props')
 var DIRECT_PROPS = require('./lib/direct-props')
@@ -74,7 +75,7 @@ function parse (partial) {
  * @param {Partial} partial The source partial
  * @param {String} tag Element type
  * @param {Object} props Element attributes
- * @param {Array} children Element child nodes
+ * @param {Array} children Element children
  */
 function Template (partial, tag, props, children) {
   this.partial = partial
@@ -174,6 +175,10 @@ Template.prototype.render = function render () {
       var partial = self.partial.values[index]
       child = document.createComment('placeholder')
 
+      if (partial instanceof Component) {
+        partial = partial.render()
+      }
+
       // Handle partial
       // If we know upfront that there's going to be a partial in this slot
       // we can expose means to bind the placeholder to an existing updater.
@@ -235,12 +240,16 @@ Template.prototype.render = function render () {
       if (Array.isArray(newChild)) {
         var oldChildren = Array.isArray(child) ? child.slice() : [child]
         newChild = flatten(newChild).reduce(function mapChild (newChildren, value, index) {
-          if (value instanceof Partial) {
+          if (value instanceof Partial || value instanceof Component) {
             var ref
             // Look among siblings for a compatible element
             for (var i = 0, len = oldChildren.length; i < len; i++) {
               ref = cache.get(oldChildren[i])
               if (ref instanceof Ref && ref.key === value.key) {
+                if (value instanceof Component) {
+                  value = value.render(ref)
+                }
+
                 // Update matching element
                 ref.update(value.values)
 
@@ -273,10 +282,13 @@ Template.prototype.render = function render () {
               }
             }
 
+            if (value instanceof Component) {
+              value = value.render()
+            }
+
             // Create a new element if no match was found
             var match
             var res = parse(value)
-            ref = cache.get(res.element)
             res.update(value.values)
             if (newChildren.length) {
               // Find next sibling adjacent to previously inserted node
@@ -311,13 +323,18 @@ Template.prototype.render = function render () {
         // Remove excess legacy children
         removeChild(oldChildren)
       } else {
-        if (newChild instanceof Partial) {
+        if (newChild instanceof Partial || newChild instanceof Component) {
           var ref = cache.get(child)
           if (ref instanceof Ref && ref.key === newChild.key && ref.update) {
+            if (newChild instanceof Component) {
+              newChild = newChild.render(ref)
+            }
             return ref.update(newChild.values)
           } else {
+            if (newChild instanceof Component) {
+              newChild = newChild.render()
+            }
             var res = parse(newChild)
-            ref = cache.get(res.element)
             res.update(newChild.values)
             newChild = res.element
           }

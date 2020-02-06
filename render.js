@@ -1,5 +1,6 @@
 var assert = require('assert')
 var morph = require('nanomorph')
+var Component = require('./component')
 var Partial = require('./partial')
 var cache = require('./cache')
 var parse = require('./parse')
@@ -11,7 +12,9 @@ module.exports = function render (value, target) {
 
   var ref = cache.get(target)
   if (ref && ref instanceof Ref && ref.key === value.key) {
-    if (value instanceof Component) value = value.
+    if (value instanceof Component) {
+      value = value.render(ref.context)
+    }
     ref.update(value.values)
     return target
   }

@@ -10,9 +10,10 @@ module.exports = Ref
  * @param {Function} update Update Element
  */
 function Ref (partial, bind, update) {
-  assert(partial instanceof Partial, 'nanohtml: partial should be an instance of Partial')
+  assert(partial instanceof Partial, 'nanohtml: partial should be type Partial')
   assert(typeof bind === 'function', 'nanohtml: bind should be type function')
-  this.key = partial.template
+  this.context = partial.context
+  this.key = partial.key
   this.bind = bind
   if (typeof update === 'function') this.update = update
 }

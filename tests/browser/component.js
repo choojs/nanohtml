@@ -1,5 +1,5 @@
 var test = require('tape')
-// var Component = require('../../component')
+var { Component, useState } = require('../../component')
 var render = require('../../render')
 var html = require('../../html')
 
@@ -174,6 +174,55 @@ test('reordering children', function (t) {
 
   function main (children) {
     return html`<div><span>Hello ${children}!</span></div>`
+  }
+})
+
+test('component can render', function (t) {
+  var id = makeID()
+  var div = document.createElement('div')
+  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  document.body.appendChild(div)
+
+  var Greeting = Component(function main (text) {
+    return html`<span>Hello <span id="${id}">${text}</span>!</span>`
+  })
+
+  render(main('planet'), div)
+  var res = document.getElementById(id)
+  t.equal(res.innerText, 'planet', 'content mounted')
+  render(main('world'), div)
+  t.equal(res.innerText, 'world', 'content updated')
+  document.body.removeChild(div)
+  t.end()
+
+  function main (text) {
+    return html`<div>${Greeting(text)}</div>`
+  }
+})
+
+test.skip('component updates state', function (t) {
+  var id = makeID()
+  var div = document.createElement('div')
+  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  document.body.appendChild(div)
+
+  var update
+  var Greeting = Component(function main (initialText) {
+    var [text, setText] = useState(initialText)
+    update = setText
+    return html`<span>Hello <span id="${id}">${text}</span>!</span>`
+  })
+
+  render(main('planet'), div)
+  var res = document.getElementById(id)
+  t.equal(res.innerText, 'planet', 'content mounted')
+  update('world')
+  t.equal(res.innerText, 'world', 'content updated')
+  document.body.removeChild(div)
+  t.end()
+
+  function main (text) {
+    return html`<div>${Greeting(text)}</div>`
   }
 })
 

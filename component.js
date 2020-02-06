@@ -1,6 +1,7 @@
 var assert = require('assert')
 var Partial = require('./partial')
 var Context = require('./context')
+var Ref = require('./ref')
 
 var stack = []
 
@@ -10,8 +11,9 @@ function Component (key, render, args) {
   if (this instanceof Component) {
     assert(key, 'nanohtml: Component key is required')
     this.key = key
-    render = typeof render === 'function' ? render : this.render.bind(this)
-    return Render
+    this.args = args
+    this._render = typeof render === 'function' ? render : this._render.bind(this)
+    return this
   }
 
   if (typeof key === 'function') {
@@ -20,50 +22,37 @@ function Component (key, render, args) {
   }
   assert(typeof render === 'function', 'nanohtml: render should be type function')
   key = typeof key === 'string' ? Symbol(key) : key
-  return function Proxy () {
-    if (this instanceof Proxy) return new Component(arguments[0], render)
-    args = Array.prototype.slice.call(arguments)
-    return Render
+  return function () {
+    return new Component(key, render, Array.prototype.slice.call(arguments))
   }
+}
 
-  function Render (ctx) {
-    assert(ctx instanceof Context, 'nanohtml: context should be type Context')
-    stack.push(ctx)
-    try {
-      var res = render.apply(undefined, args)
-      assert(res instanceof Partial, 'nanohtml: component should return html partial')
-      res.key = key
-      return res
-    } finally {
-      var last = stack.pop()
-      assert(last === ctx, 'nanohtml: context mismatch, render cycle out of sync')
-      assert(ctx.counter === 0, 'nanohtml: context failed to rollback counter')
-    }
+Component.prototype.render = function () {
+  throw new Error('nanohtml: render should be implemented')
+}
+
+Component.prototype.key = function (key) {
+  key = typeof key === 'string' ? Symbol(key) : key
+  return new Component(key, this.render, this.args)
+}
+
+Component.prototype.render = function (ref) {
+  var ctx = ref ? ref.context : new Context()
+  stack.push(ctx)
+  try {
+    var res = this._render.apply(undefined, this.args)
+    assert(res instanceof Partial, 'nanohtml: component should return html partial')
+    res.context = ctx
+    res.key = this.key
+    return res
+  } finally {
+    var last = stack.pop()
+    assert(last === ctx, 'nanohtml: context mismatch, render cycle out of sync')
+    assert(ctx.counter === 0, 'nanohtml: context failed to rollback counter')
   }
 }
 
 Component.Component = Component
-Component.prototype = Object.create(Partial.prototype)
-Component.prototype.constructor = Component
-
-Component.prototype.render = function render () {
-  throw new Error('nanohtml: render should be implemented')
-}
-
-Component.useKey = function useKey (Fn, key) {
-  return function () {
-    var args = Array.prototype.slice.call(arguments)
-    try {
-      // Create component (Functional/Class)
-      var res = new Fn(key)
-      return res.apply(undefined, args)
-    } catch (err) {
-      // Create Partial with custom key
-      return Object.assign(Fn.apply(undefined, args), { key: key })
-    }
-  }
-}
-
 Component.useState = function useState (initialState) {
   var ctx = stack[stack.length - 1]
   var index = ++ctx.counter
@@ -80,31 +69,41 @@ Component.useState = function useState (initialState) {
 }
 
 /*
-var Foo = Component(function Foo () {
-  // use hooks here
-  return html`<span>${'Foo'}</span>`
-})
+// Idea for generator components
+function * Button (num = 0, render) {
+  load()
 
-class Bar extends Component {
-  // use methods here
-  render () {
-    return html`<span>Bar</span>`
+  try {
+    while (true) {
+      yield html`<button onclick=${onclick}>Clicked ${num} times</button>`
+    }
+  } finally {
+    unload()
+  }
+
+  function onclick () {
+    num++
+    render()
   }
 }
 
-var Baz = function () {
-  // no hooks allowed
-  return html`<span>${'Baz'}</span>`
-}
+// Component using hooks
+var Foo = Component(function Foo () {
+  var [count, setCount] = useState(0)
 
-var myBar = new Bar('bar-key')
+  onload(function (el) {
+    console.log('mounted!)
+    return function (el) {
+      console.log('unmounted!')
+    }
+  })
 
+  return html`<button onclick=${() => setCount(num++)}>Clicked ${num} times</button>
+})
+
+// Usage with keys
 html`
-  <div>${Baz('unkeyed-baz')}</div>
   <div>${Foo('unkeyed-foo')}</div>
-  <div>${myBar('keyed-bar')}</div>
-  <div>${useKey(Baz, 'baz-key')('keyed-baz')}</div>
-  <div>${useKey(Foo, 'foo-key')('keyed-foo')}</div>
-  <div>${useKey(Bar, 'bar-key')('keyed-bar')}</div>
+  <div>${Foo('keyed-foo').key('foo-key')}</div>
 `
 */
