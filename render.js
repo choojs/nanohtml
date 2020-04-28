@@ -1,30 +1,24 @@
-var assert = require('assert')
-var morph = require('nanomorph')
-var Component = require('./component')
-var Partial = require('./partial')
-var cache = require('./cache')
-var parse = require('./parse')
-var Ref = require('./ref')
+import assert from 'nanoassert/index.js'
+import morph from './morph.js'
+import cache from './cache.js'
+import Partial from './partial.js'
 
-module.exports = function render (value, target) {
-  if (typeof window === 'undefined') return value
-  assert(value instanceof Partial, 'nanohtml: render should be called with html partial')
+export default function render (partial, target, context) {
+  if (typeof window === 'undefined') return partial
+  assert(partial instanceof Partial, 'nanohtml: render should be called with html partial')
 
-  var ref = cache.get(target)
-  if (ref && ref instanceof Ref && ref.key === value.key) {
-    if (value instanceof Component) {
-      value = value.render(ref.context)
-    }
-    ref.update(value.values)
+  var cached = cache.get(target)
+  if (cached instanceof Partial && cached.key === partial.key) {
+    partial.render(cached)
     return target
   }
 
-  var res = parse(value)
+  var res = partial.render()
 
   var element
-  if (target) element = morph(target, res.element, { cache })
+  if (target) element = morph(target, res.element)
   else element = res.element
-  res.update(value.values)
+  res.update(partial.values)
 
   return element
 }

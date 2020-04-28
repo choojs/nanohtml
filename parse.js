@@ -3,6 +3,7 @@ var hyperx = require('hyperx')
 var Ref = require('./ref')
 var cache = require('./cache')
 var Partial = require('./partial')
+var Context = require('./context')
 var Component = require('./component')
 var SVG_TAGS = require('./lib/svg-tags')
 var BOOL_PROPS = require('./lib/bool-props')
@@ -21,7 +22,11 @@ module.exports = parse
  * Parse a partial object into element and associated utilities
  * @param {Partial} partial
  */
-function parse (partial) {
+function parse (partial, context) {
+  context = context || new Context()
+  assert(context instanceof Context, 'nanohtml: context should be type Context')
+  assert(partial instanceof Partial, 'nanohtml: partial should be type Partial')
+
   var template = templates.get(partial.template)
   if (!template) {
     // Create indexed placeholders for all values
@@ -41,10 +46,10 @@ function parse (partial) {
   }
 
   // Render element from template
-  var res = template.render()
+  var res = template.render(context)
 
   // Cache element utilities
-  cache.set(res.element, new Ref(partial, res.bind, update))
+  cache.set(res.element, new TopRef(partial, res.bind, update))
 
   // Sort updaters by index
   var updaters = res.editors.sort(function (a, b) {
@@ -67,6 +72,14 @@ function parse (partial) {
     for (var i = 0, len = values.length; i < len; i++) {
       updaters[i](values[i], values)
     }
+  }
+}
+
+class TopRef extends Ref {
+  constructor (partial, bind, update) {
+    assert(typeof update === 'function', 'nanohtml: update should be type function')
+    super(partial, bind)
+    this.update = update
   }
 }
 
@@ -103,7 +116,7 @@ function Template (partial, tag, props, children) {
   }
 }
 
-Template.prototype.render = function render () {
+Template.prototype.render = function render (context) {
   var element
   var self = this
   var editors = []
@@ -176,26 +189,29 @@ Template.prototype.render = function render () {
       child = document.createComment('placeholder')
 
       if (partial instanceof Component) {
-        partial = partial.render()
+        var ctx = context.has(partial.key)
+          ? context.get(partial.key)
+          : set(context, partial.key, new Context())
+        partial = partial.render(ctx)
       }
 
       // Handle partial
       // If we know upfront that there's going to be a partial in this slot
       // we can expose means to bind the placeholder to an existing updater.
       // This avoids having to re-render an identical element when mounting
-      // one view onto another and they e.g. share the same header element.
+      // one view onto another and they e.g. share the same header partial.
       if (partial instanceof Partial) {
         // Determine if the placeholder is interchangeable with node
         // Node -> bool
         child.isSameNode = function isSameNode (node) {
           var ref = cache.get(node)
-          return ref && ref instanceof Ref && ref.key === partial.key
+          return ref && ref instanceof TopRef && ref.key === partial.key
         }
 
         // Expose interface for binding placeholder to an existing updater
         cache.set(child, new Ref(partial, function bind (node) {
-          var ctx = cache.get(node)
-          assert(ctx, 'nanohtml: cannot bind to uncached node')
+          var cached = cache.get(node)
+          assert(cached, 'nanohtml: cannot bind to uncached node')
           // Replace placeholder updater with existing nodes' updater
           var editor = editors.find((editor) => editor.index === index)
           editor.update = function update (value) {
@@ -204,7 +220,7 @@ Template.prototype.render = function render () {
             if (value instanceof Partial) values = value.values
             // Wrap value in array
             else values = [value]
-            return ctx.update(values)
+            return cached.update(values)
           }
         }))
       }
@@ -215,7 +231,7 @@ Template.prototype.render = function render () {
       })
     } else if (child instanceof Template) {
       // Child is an inline child node of element
-      var res = child.render()
+      var res = child.render(context)
       cache.set(res.element, new Ref(child.partial, res.bind))
       editors = editors.concat(res.editors)
       child = res.element
@@ -239,15 +255,15 @@ Template.prototype.render = function render () {
     function update (newChild) {
       if (Array.isArray(newChild)) {
         var oldChildren = Array.isArray(child) ? child.slice() : [child]
-        newChild = flatten(newChild).reduce(function mapChild (newChildren, value, index) {
+        newChild = newChild.flat().reduce(function mapChild (newChildren, value, index) {
           if (value instanceof Partial || value instanceof Component) {
             var ref
             // Look among siblings for a compatible element
             for (var i = 0, len = oldChildren.length; i < len; i++) {
               ref = cache.get(oldChildren[i])
-              if (ref instanceof Ref && ref.key === value.key) {
+              if (ref instanceof TopRef && ref.key === value.key) {
                 if (value instanceof Component) {
-                  value = value.render(ref)
+                  value = value.render(context.get(ref.key))
                 }
 
                 // Update matching element
@@ -278,12 +294,14 @@ Template.prototype.render = function render () {
                 // Drop reference so that it's not updated more than once
                 len--
                 oldChildren.splice(i, 1)
+
+                // continue with next child
                 return newChildren
               }
             }
 
             if (value instanceof Component) {
-              value = value.render()
+              value = value.render(set(context, value.key, new Context()))
             }
 
             // Create a new element if no match was found
@@ -323,18 +341,20 @@ Template.prototype.render = function render () {
         // Remove excess legacy children
         removeChild(oldChildren)
       } else {
+        const ref = cache.get(child)
+
         if (newChild instanceof Partial || newChild instanceof Component) {
-          var ref = cache.get(child)
-          if (ref instanceof Ref && ref.key === newChild.key && ref.update) {
+          if (ref instanceof TopRef && ref.key === newChild.key) {
             if (newChild instanceof Component) {
-              newChild = newChild.render(ref)
+              newChild = newChild.render(context.get(ref.key))
             }
             return ref.update(newChild.values)
           } else {
             if (newChild instanceof Component) {
-              newChild = newChild.render()
+              const ctx = set(context, newChild.key, new Context())
+              newChild = newChild.render(ctx)
             }
-            var res = parse(newChild)
+            var res = parse(newChild, ctx)
             res.update(newChild.values)
             newChild = res.element
           }
@@ -473,18 +493,6 @@ function createFragment (nodes) {
   return fragment
 }
 
-// Recursively flatten an array
-// arr -> arr
-function flatten (arr) {
-  return arr.reduce(function flat (acc, value) {
-    if (Array.isArray(value)) {
-      return acc.concat(value.reduce(flat, []))
-    }
-    acc.push(value)
-    return acc
-  }, [])
-}
-
 // Determine wether given value is a placeholder value
 // any -> bool
 function isPlaceholder (value) {
@@ -495,4 +503,11 @@ function isPlaceholder (value) {
 // str -> num
 function getPlaceholderIndex (placeholder) {
   return parseInt(placeholder.slice('\0placeholder'.length), 10)
+}
+
+// set key => vakue pair on Map, returns value
+// (Map, any, any) -> any
+function set (map, key, value) {
+  map.set(key, value)
+  return value
 }

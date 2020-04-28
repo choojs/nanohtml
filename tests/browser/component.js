@@ -1,7 +1,10 @@
+// import test from 'tape'
+// import html from '../../html.js'
+// import render from '../../render.js'
+// import { Component } from '../../component.js'
+
 var test = require('tape')
-var { Component, useState } = require('../../component')
-var render = require('../../render')
-var html = require('../../html')
+var { html, render } = require('../../nanohtml')
 
 test('renders html', function (t) {
   var el = render(html`<span>Hello ${'planet'}!</span>`)
@@ -27,13 +30,15 @@ test('renders array of children', function (t) {
 test('can mount in DOM', function (t) {
   var id = makeID()
   var div = document.createElement('div')
-  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  div.innerHTML = '<span><span>Hi <strong>world</strong>!</span></span>'
+  var firstChild = div.firstElementChild
   document.body.appendChild(div)
 
   render(html`<div id="${id}"><span>Hello ${html`<span>planet</span>`}!</span></div>`, div)
   var res = document.getElementById(id)
   t.ok(res, 'element was mounted')
   t.ok(res.isSameNode(div), 'morphed onto existing node')
+  t.ok(firstChild.isSameNode(res.firstElementChild), 'children morphed too')
   t.equal(res.innerText, 'Hello planet!', 'content match')
   document.body.removeChild(div)
   t.end()
@@ -61,7 +66,7 @@ test('updates in place', function (t) {
 test('persists in DOM between mounts', function (t) {
   var id = makeID()
   var div = document.createElement('div')
-  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+  div.innerHTML = '<span>Hi <span>world</span>!</span>'
   document.body.appendChild(div)
 
   render(foo('planet'), div)
@@ -130,6 +135,30 @@ test('updating from null', function (t) {
   }
 })
 
+test('updating with array', function (t) {
+  var id = makeID()
+  var div = document.createElement('div')
+  div.innerHTML = 'Hi <span>world</span>!'
+  document.body.appendChild(div)
+
+  var children = [
+    html`<span>planet</span>`,
+    html`<span>world</span>`
+  ]
+  render(main(children[0]), div)
+  var firstChild = div.firstElementChild
+  t.equal(div.innerText, 'Hello planet!', 'child mounted')
+  render(main(children), div)
+  t.equal(div.innerText, 'Hello planetworld!', 'all children mounted')
+  // t.equal(div.firstElementChild, firstChild, 'child remained in place')
+  document.body.removeChild(div)
+  t.end()
+
+  function main (children) {
+    return html`<div>Hello ${children}!</div>`
+  }
+})
+
 test('alternating partials', function (t) {
   var id = makeID()
   var world = html`<span>world</span>`
@@ -167,7 +196,9 @@ test('reordering children', function (t) {
   t.equal(world.nextSibling, planet, 'mounted in order')
   t.equal(div.innerText, 'Hello worldplanet!', 'children in order')
   render(main(children.reverse()), div)
-  t.equal(planet.nextSibling, world, 'children reordered')
+  world = document.getElementById(ids[0])
+  planet = document.getElementById(ids[1])
+  t.equal(planet.nextElementSibling, world, 'children reordered')
   t.equal(div.innerText, 'Hello planetworld!', 'children in (reversed) order')
   document.body.removeChild(div)
   t.end()
@@ -177,54 +208,56 @@ test('reordering children', function (t) {
   }
 })
 
-test('component can render', function (t) {
-  var id = makeID()
-  var div = document.createElement('div')
-  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
-  document.body.appendChild(div)
-
-  var Greeting = Component(function main (text) {
-    return html`<span>Hello <span id="${id}">${text}</span>!</span>`
-  })
-
-  render(main('planet'), div)
-  var res = document.getElementById(id)
-  t.equal(res.innerText, 'planet', 'content mounted')
-  render(main('world'), div)
-  t.equal(res.innerText, 'world', 'content updated')
-  document.body.removeChild(div)
-  t.end()
-
-  function main (text) {
-    return html`<div>${Greeting(text)}</div>`
-  }
-})
-
-test.skip('component updates state', function (t) {
-  var id = makeID()
-  var div = document.createElement('div')
-  div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
-  document.body.appendChild(div)
-
-  var update
-  var Greeting = Component(function main (initialText) {
-    var [text, setText] = useState(initialText)
-    update = setText
-    return html`<span>Hello <span id="${id}">${text}</span>!</span>`
-  })
-
-  render(main('planet'), div)
-  var res = document.getElementById(id)
-  t.equal(res.innerText, 'planet', 'content mounted')
-  update('world')
-  t.equal(res.innerText, 'world', 'content updated')
-  document.body.removeChild(div)
-  t.end()
-
-  function main (text) {
-    return html`<div>${Greeting(text)}</div>`
-  }
-})
+// test.only('component can render', function (t) {
+//   var id = makeID()
+//   var div = document.createElement('div')
+//   div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+//   document.body.appendChild(div)
+//
+//   var Greeting = Component(function Greeting (text) {
+//     return html`<span>Hello <span id="${id}">${text}</span>!</span>`
+//   })
+//
+//   render(main('planet'), div)
+//   var res = document.getElementById(id)
+//   console.log(div.outerHTML)
+//   t.equal(res.innerText, 'planet', 'content mounted')
+//   render(main('world'), div)
+//   t.equal(res.innerText, 'world', 'content updated')
+//   document.body.removeChild(div)
+//   t.end()
+//
+//   function main (text) {
+//     return html`<div>${Greeting(text)}</div>`
+//   }
+// })
+//
+// test.skip('component updates state', function (t) {
+//   var id = makeID()
+//   var div = document.createElement('div')
+//   div.innerHTML = '<span>Hi <strong>world</strong>!</span>'
+//   document.body.appendChild(div)
+//
+//   var update
+//   var Greeting = Component(function Greeting (initialText) {
+//     var [text, setText] = useState(initialText)
+//     update = setText
+//     return html`<span>Hello <span id="${id}">${text}</span>!</span>`
+//   })
+//
+//   var context = new Context()
+//   render(main('planet'), div, context)
+//   var res = document.getElementById(id)
+//   t.equal(res.innerText, 'planet', 'content mounted')
+//   update('world')
+//   t.equal(res.innerText, 'world', 'content updated')
+//   document.body.removeChild(div)
+//   t.end()
+//
+//   function main (text) {
+//     return html`<div>${Greeting(text)}</div>`
+//   }
+// })
 
 function makeID () {
   return 'uid-' + Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)

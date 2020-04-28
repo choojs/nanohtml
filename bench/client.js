@@ -1,13 +1,12 @@
 var nanobench = require('nanobench')
 
-var render = require('../render')
-var nanoHtml = require('../') // old
-var nanoHtmlNext = require('../html') // new
+var oldHtml = require('../') // old
+var { render, html } = require('../nanohtml') // new
 var morph = require('nanomorph')
 var createApp = require('./fixtures/app')
 
 nanobench('nanohtml browser 10000 iterations', function (b) {
-  var app = createApp(nanoHtml)
+  var app = createApp(oldHtml)
   var div = document.createElement('div')
 
   document.body.appendChild(div)
@@ -19,7 +18,7 @@ nanobench('nanohtml browser 10000 iterations', function (b) {
 })
 
 nanobench('nanohtml (next) browser 10000 iterations', function (b) {
-  var app = createApp(nanoHtmlNext)
+  var app = createApp(html)
   var div = document.createElement('div')
 
   document.body.appendChild(div)
