@@ -42,7 +42,7 @@ console.log(el.toString())
 ```
 
 ### Node with custom DOM
-Modules like [`jsdom`](https://github.com/jsdom/jdsom) implement (parts of)
+Modules like [`jsdom`](https://github.com/jsdom/jsdom) implement (parts of)
 the DOM in pure JavaScript. If you don't really need the performance of
 string concatenation, or use nanohtml components that modify the raw DOM, use
 `nanohtml/dom` to give nanohtml a custom Document.
