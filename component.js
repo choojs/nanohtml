@@ -1,24 +1,32 @@
 var assert = require('nanoassert')
-var Partial = require('./nanohtml')
+var { Partial } = require('./nanohtml')
 
+var identifier = Symbol('nanohtml/component')
 var tracking = new WeakMap()
 var windows = new WeakSet()
 var loadid = makeId()
 var stack = []
 
-export function Component (fn, key, args) {
+exports.Ref = Ref
+exports.memo = memo
+exports.onload = onload
+exports.onupdate = onupdate
+exports.Component = Component
+exports.identifier = identifier
+
+function Component (fn, key, args) {
   if (this instanceof Component) {
-    this.beforerender = []
     this.afterupdate = []
+    this.beforeload = []
     this.cleanup = []
-    this.refs = new Map()
+    this.refs = []
     this.args = args
     this.key = key
     this.fn = fn
     return this
   }
 
-  key = fn.name ? Symbol(fn.name) : Symbol('component')
+  key = fn.name ? Symbol(fn.name) : Symbol('nanohtml/component')
   return function (...args) {
     return new Component(fn, key, args)
   }
@@ -32,27 +40,80 @@ Component.prototype.key = function key (key) {
   return this
 }
 
-Component.prototype.render = function render (node) {
-  assert(!node || node instanceof Node, 'nanohtml: node should be type Node')
-  var cached = node ? node.state.get(this.key) : null
+Component.prototype.resolve = function (ctx) {
+  var cached = ctx ? ctx.state.get(identifier) : null
   this.index = this.args.length
   if (cached) this.args = cached.args.map((arg, i) => this.args[i] || arg)
   stack.unshift(this)
   try {
     if (cached) unwind(cached.cleanup, this.args)
-    for (const ref of this.refs.values()) ref.claimed = false
     const partial = this.fn(...this.args)
-    node = partial.render(node)
-    assert(node instanceof Node, 'nanohtml: node should be type Node')
-    unwind(this.beforerender, [node.element])
-    unwind(this.afterupdate, this.args)
-    node.state.set(this.key, this)
-    this.node = node
-    return node
+    partial.key = this.key
+    return partial
   } finally {
     const component = stack.shift()
-    assert(component === this, 'nanohtml: stack out of sync')
+    assert(component === this, 'nanohtml/component: stack out of sync')
   }
+}
+
+Component.prototype.render = function (oldNode) {
+  var partial = this.resolve()
+  ctx = Partial.prototype.render.call(partial, oldNode)
+  ctx.state.set(identifier, this)
+  this.rendered = partial
+  return ctx
+}
+
+Component.prototype.update = function (ctx) {
+  this.ctx = ctx // store context for async updates
+  var partial = this.rendered || this.resolve(ctx)
+  Partial.prototype.update.call(partial, ctx)
+  stack.unshift(this)
+  try {
+    unwind(this.refs.map((ref) => (el) => ref.init(el)), [ctx.element])
+    assert(
+      this.refs.every(({ uid }) => !ctx.element.classList.contains(uid)),
+      'nanohtml/component: refs cannot be used with root element, use onload to access root element'
+    )
+    unwind(this.afterupdate, this.args)
+    unwind(this.beforeload, [ctx.element])
+  } finally {
+    const component = stack.shift()
+    assert(component === this, 'nanohtml/component: stack out of sync')
+  }
+}
+
+function Ref (uid = makeId()) {
+  this.uid = uid
+  stack[0].refs.push(this)
+  if (typeof window === 'undefined' || typeof Proxy !== 'function') return this
+  return new Proxy(this, {
+    get: (self, key, receiver) => {
+      if (this[key]) return this[key]
+      assert(this.collection, 'nanohtml/component: cannot access ref during render')
+      return Reflect.get(this.collection, key, receiver)
+    }
+  })
+}
+Ref.prototype = Object.create(window.HTMLCollection.prototype)
+Ref.prototype.constructor = Ref
+Ref.prototype[Symbol.toPrimitive] = serializeRef
+Ref.prototype.toString = serializeRef
+Ref.prototype.toJSON = serializeRef
+Ref.prototype.init = function (element) {
+  this.collection = element.getElementsByClassName(this.uid)
+}
+// for compatibility with legacy browsers w/o Proxy
+Ref.prototype.item = function (index) {
+  return this.collection.item(index)
+}
+// for compatibility with legacy browsers w/o Proxy
+Ref.prototype.namedItem = function (name) {
+  return this.collection.namedItem(name)
+}
+
+function serializeRef () {
+  return this.uid
 }
 
 function unwind (arr, args) {
@@ -62,61 +123,29 @@ function unwind (arr, args) {
   }
 }
 
-export function Ref (uid = makeId()) {
-  var serialize = () => uid
-
-  if (typeof window === 'undefined') {
-    return { toString: serialize, toJSON: serialize }
-  }
-
-  var component = stack[0]
-  var ref = component.refs.get(uid)
-
-  if (!ref || ref.claimed) {
-    for (const _ref of component.refs.values()) {
-      if (!_ref.claimed) ref = _ref
-    }
-
-    if (!ref || ref.claimed) {
-      ref = Object.create(document.getElementsByClassName(uid))
-      ref.toJSON = serialize
-      ref.toString = serialize
-      component.refs.set(uid, ref)
-    }
-  }
-
-  ref.claimed = true
-  return ref
-}
-
-if (typeof window !== 'undefined') {
-  Ref.prototype = window.HTMLCollection.prototype
-}
-
 function makeId () {
   return `__ref-${Math.random().toString(36).substr(-4)}`
 }
 
-export function onupdate (fn) {
+function onupdate (fn) {
   var component = stack[0]
   if (typeof fn === 'function') {
-    component.afterupdate.push(function (component) {
-      var res = fn(...component.args)
+    component.afterupdate.push(function (...args) {
+      var res = fn(...args)
       if (typeof res === 'function') {
-        component.cleanup.push(function (component) {
-          fn(...component.args)
-        })
+        component.cleanup.push(res)
       }
     })
   }
 
   return function (...args) {
+    assert(component.ctx, 'nanohtml/component: cannot update while rendering')
     var next = new Component(component.fn, component.key, args)
-    next.render(component.node)
+    next.update(component.ctx)
   }
 }
 
-export function memo (initial) {
+function memo (initial) {
   var index = stack[0].index++
   var { args } = stack[0]
   var value = args[index]
@@ -150,8 +179,8 @@ export function memo (initial) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-export function onload (fn) {
-  stack[0].beforerender.push(function (el) {
+function onload (fn) {
+  stack[0].beforeload.push(function (el) {
     el.classList.add(loadid)
 
     var entry
@@ -163,8 +192,9 @@ export function onload (fn) {
         children: el.getElementsByClassName(loadid)
       }
       tracking.set(el, entry)
-      if (!windows.has(this)) create(this)
+      if (!windows.has(this)) createObserver(this)
     } else {
+      // FIXME: this will reset the queue on every onload
       entry = tracking.get(el)
       entry.on = [on]
       entry.off = []
@@ -177,7 +207,7 @@ export function onload (fn) {
   })
 }
 
-function create (window) {
+function createObserver (window) {
   windows.add(window)
 
   const document = window.document
@@ -193,12 +223,14 @@ function create (window) {
   })
 
   function callAll (nodes, idx) {
-    for (let i = 0, len = nodes.length; i < len; i++) {
-      if (!tracking.has(nodes[i])) continue
-      call(nodes[i], idx)
-      const entry = tracking.get(nodes[i])
-      for (let _i = 0, _len = entry.children.length; _i < _len; _i++) {
-        call(entry.children[_i], idx)
+    for (const node of nodes) {
+      if (!node.classList) continue
+      if (node.classList.contains(loadid)) call(node, idx)
+      const children = tracking.has(node)
+        ? tracking.get(node).children
+        : node.getElementsByClassName(loadid)
+      for (const child of children) {
+        call(child, idx)
       }
     }
   }
@@ -220,8 +252,7 @@ function create (window) {
   }
 
   function onchange (mutations) {
-    for (let i = 0, len = mutations.length; i < len; i++) {
-      const { addedNodes, removedNodes } = mutations[i]
+    for (const { addedNodes, removedNodes } of mutations) {
       callAll(removedNodes, 1)
       callAll(addedNodes, 0)
     }
