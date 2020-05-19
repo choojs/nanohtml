@@ -10,6 +10,7 @@ const templates = new WeakMap()
 const PLACEHOLDER_INDEX = /\0placeholder(\d+)\0/g
 const XLINKNS = 'http://www.w3.org/1999/xlink'
 const SVGNS = 'http://www.w3.org/2000/svg'
+const FRAGMENT = '__fragment'
 const COMMENT_TAG = '!--'
 const TEXT_NODE = 3
 
@@ -61,25 +62,24 @@ Partial.prototype.render = function render (oldNode) {
     const parser = hyperx(h, {
       comments: true,
       createFragment (nodes) {
-        return function (values, key) {
-          var children = nodes.map(function (node) {
-            if (typeof node === 'function') node = node(values, key)
-            return node
-          })
-          var element = createFragment(children.map(function (child) {
-            return child instanceof Context ? child.element : toNode(child)
-          }))
-          var editors = children.reduce(function (acc, child) {
-            if (child instanceof Context) acc.push(...child.editors)
-            return acc
-          }, [])
-          var bind = Function.prototype // TODO: add tests (all children share a key)
-          return new Context({ key, element, editors, bind })
-        }
+        return h(FRAGMENT, {}, nodes)
       }
     })
 
     template = parser.apply(undefined, [this.template].concat(placeholders))
+
+    if (typeof template === 'string') {
+      if (isPlaceholder(template)) {
+        // the only child is a partial, e.g. html`${html`<p>Hi</p>`}`
+        if (values[0] instanceof Partial) return values[0].render(oldNode)
+        // the only child is not html, e.g. html`${'Hi'}`
+        return h(FRAGMENT, {}, values)(values, key, oldNode)
+      } else {
+        // the only child is text, e.g. html`Hi`
+        return h(FRAGMENT, {}, [template])(values, key, oldNode)
+      }
+    }
+
     templates.set(this.template, template)
   }
 
@@ -122,7 +122,9 @@ function h (tag, attrs, children) {
 
   return function template (values, key, oldNode) {
     var element
-    if (oldNode && oldNode.tagName === tag.toUpperCase()) {
+    if (tag === FRAGMENT) {
+      element = document.createDocumentFragment()
+    } else if (oldNode && oldNode.tagName === tag.toUpperCase()) {
       element = oldNode
       for (const { name } of element.attributes) {
         if (!(name in attrs)) element.removeAttribute(name)
@@ -137,14 +139,14 @@ function h (tag, attrs, children) {
       if (isPlaceholder(name)) {
         editors.push({
           index: getPlaceholderIndex(name),
-          update: function (name) {
+          update (name) {
             setAttribute(name, value)
           }
         })
       } else if (isPlaceholder(value)) {
         editors.push({
           index: getPlaceholderIndex(value),
-          update: function (value) {
+          update (value) {
             setAttribute(name, value)
           }
         })
@@ -195,7 +197,7 @@ function h (tag, attrs, children) {
           key: Symbol(index),
           element: child,
           editors: [],
-          bind: function (newNode) {
+          bind (newNode) {
             children[index] = newNode
           }
         }))
@@ -339,7 +341,7 @@ function h (tag, attrs, children) {
             key: child.key,
             element: node,
             editors: [editor],
-            bind: function (newNode) {
+            bind (newNode) {
               editor.update = createUpdate(null, newNode)
             }
           }))
@@ -362,7 +364,7 @@ function h (tag, attrs, children) {
                 insertBefore(newChild, oldChild)
                 removeChild(oldChild)
               } else if (!newChild.isSameNode(oldChild)) {
-                element.replaceChild(newChild, oldChild)
+                oldChild.parentNode.replaceChild(newChild, oldChild)
               }
             } else {
               insertBefore(newChild, oldChild)
@@ -393,6 +395,7 @@ function h (tag, attrs, children) {
       }
     }
 
+    // TODO: optimize, see createUpdate
     for (const newChild of newChildren) {
       if (Array.isArray(newChild)) {
         for (const child of newChild) {

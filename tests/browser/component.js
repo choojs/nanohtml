@@ -9,6 +9,22 @@ test('renders html', function (t) {
   t.end()
 })
 
+test('renders plain text', function (t) {
+  var div = document.createElement('div')
+  var el = render(html`Hello world!`)
+  div.appendChild(el)
+  t.equal(div.innerText, 'Hello world!', 'text rendered')
+  t.end()
+})
+
+test('renders anything', function (t) {
+  var div = document.createElement('div')
+  var el = render(html`${['Hello world!']}`)
+  div.appendChild(el)
+  t.equal(div.innerText, 'Hello world!', 'text rendered')
+  t.end()
+})
+
 test('renders nested html', function (t) {
   var el = render(html`<span>Hello ${html`<span>planet</span>`}!</span>`)
   t.equal(el.childElementCount, 1, 'has children')
@@ -24,17 +40,41 @@ test('renders array of children', function (t) {
 })
 
 test('renders fragments', function (t) {
-  var div = document.createElement('div')
-  var el = render(html`<span>Hello</span> <span>world!</span>`)
-  div.appendChild(el)
-  t.equal(div.childElementCount, 2, 'has children')
-  t.equal(div.innerText, 'Hello world!', 'children rendered')
-  div = document.createElement('div')
-  el = render(html`<div>${html`<span>Hello</span> <span>world!</span>`}</div>`)
-  div.appendChild(el)
-  t.equal(div.firstElementChild.childElementCount, 2, 'has nested children')
-  t.equal(div.innerText, 'Hello world!', 'nested children rendered')
-  t.end()
+  t.test('top level fragment', function (t) {
+    var div = document.createElement('div')
+    var el = render(html`<span>Hello</span> <span>world!</span>`)
+    div.appendChild(el)
+    t.equal(div.childElementCount, 2, 'has children')
+    t.equal(div.innerText, 'Hello world!', 'children rendered')
+    t.end()
+  })
+
+  t.test('nested fragment', function (t) {
+    var div = document.createElement('div')
+    var el = render(html`<div>${html`<span>Hello</span> <span>world!</span>`}</div>`)
+    div.appendChild(el)
+    t.equal(div.firstElementChild.childElementCount, 2, 'has nested children')
+    t.equal(div.innerText, 'Hello world!', 'nested children rendered')
+    t.end()
+  })
+
+  t.test('with top level partial', function (t) {
+    var div = document.createElement('div')
+    var el = render(html`<span>Hello</span> ${html`<span>world!</span>`}`)
+    div.appendChild(el)
+    t.equal(div.childElementCount, 2, 'has children')
+    t.equal(div.innerText, 'Hello world!', 'children rendered')
+    t.end()
+  })
+
+  t.test('with only partial', function (t) {
+    var div = document.createElement('div')
+    var el = render(html`${html`<span>Hello</span> <span>world!</span>`}`)
+    div.appendChild(el)
+    t.equal(div.childElementCount, 2, 'has children')
+    t.equal(div.innerText, 'Hello world!', 'children rendered')
+    t.end()
+  })
 })
 
 test('can mount in DOM', function (t) {
@@ -154,7 +194,6 @@ test('updating from null', function (t) {
 })
 
 test('updating with array', function (t) {
-  var id = makeId()
   var div = document.createElement('div')
   div.innerHTML = 'Hi <span>world</span>!'
   document.body.appendChild(div)
@@ -168,7 +207,7 @@ test('updating with array', function (t) {
   t.equal(div.innerText, 'Hello planet!', 'child mounted')
   render(main(children), div)
   t.equal(div.innerText, 'Hello planetworld!', 'all children mounted')
-  // t.equal(div.firstElementChild, firstChild, 'child remained in place')
+  t.equal(div.firstElementChild, firstChild, 'child remained in place')
   document.body.removeChild(div)
   t.end()
 
@@ -249,17 +288,17 @@ test('component can render', function (t) {
   }
 })
 
-test.only('component can render fragment', function (t) {
+test('component can render fragment', function (t) {
   var update
   var Greeting = Component(function Greeting (text) {
     update = onupdate()
-    return html`<span>Hello</span> ${html`<span>${text}!</span>`}`
+    return html`<span>Hello</span> <span>${text}!</span>`
   })
   var div = document.createElement('div')
-  var res = render(html`<div>${Greeting('world')}</div>`, div)
-  console.log(div.outerHTML)
+  render(html`<div>${Greeting('world')}</div>`, div)
+  t.equal(div.innerText, 'Hello world!', 'children rendered')
   update('planet')
-  console.log(div.outerHTML)
+  t.equal(div.innerText, 'Hello planet!', 'children updated')
   t.end()
 })
 
