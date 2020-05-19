@@ -32,7 +32,12 @@ function render (partial, oldNode) {
     const ctx = partial.render(oldNode)
     partial.update(ctx)
     if (oldNode && !ctx.element.isSameNode(oldNode)) {
-      oldNode.parentElement.replaceChild(ctx.element, oldNode)
+      if (ctx.element instanceof window.DocumentFragment) {
+        removeChild(Array.from(oldNode.childNodes))
+        oldNode.appendChild(ctx.element)
+      } else {
+        oldNode.parentElement.replaceChild(ctx.element, oldNode)
+      }
     }
     return ctx.element
   }
@@ -44,28 +49,44 @@ function Partial ({ template, values }) {
   this.key = template
 }
 
-Partial.prototype.render = function (oldNode) {
+Partial.prototype.render = function render (oldNode) {
+  var { values, key } = this
   var template = templates.get(this.template)
 
   if (!template) {
-    var placeholders = this.values.map(function (v, index) {
+    const placeholders = values.map(function toPlaceholder (_, index) {
       return '\0placeholder' + index + '\0'
     })
 
-    var parser = hyperx(h, {
+    const parser = hyperx(h, {
       comments: true,
-      // TODO: add test for fragments, this should just return an array
-      createFragment: createFragment
+      createFragment (nodes) {
+        return function (values, key) {
+          var children = nodes.map(function (node) {
+            if (typeof node === 'function') node = node(values, key)
+            return node
+          })
+          var element = createFragment(children.map(function (child) {
+            return child instanceof Context ? child.element : toNode(child)
+          }))
+          var editors = children.reduce(function (acc, child) {
+            if (child instanceof Context) acc.push(...child.editors)
+            return acc
+          }, [])
+          var bind = Function.prototype // TODO: add tests (all children share a key)
+          return new Context({ key, element, editors, bind })
+        }
+      }
     })
 
     template = parser.apply(undefined, [this.template].concat(placeholders))
     templates.set(this.template, template)
   }
 
-  return template(this.values, this.key, oldNode)
+  return template(values, key, oldNode)
 }
 
-Partial.prototype.update = function (ctx) {
+Partial.prototype.update = function update (ctx) {
   for (const { update, index } of ctx.editors) {
     update(this.values[index], this.values)
   }
@@ -148,8 +169,8 @@ function h (tag, attrs, children) {
     })
 
     var oldChildren = oldNode && Array.from(oldNode.childNodes)
-    var newChildren = children.reduce(function (children, child, index) {
-      if (typeof child === 'function') child = child(values)
+    var newChildren = children.reduce(function eachChild (children, child, index) {
+      if (typeof child === 'function') child = child(values, key)
 
       if (isPlaceholder(child)) {
         const placeholderIndex = getPlaceholderIndex(child)
@@ -183,43 +204,70 @@ function h (tag, attrs, children) {
       return children
 
       function createUpdate (ctx, oldChild) {
-        return function (newChild) {
+        return function update (newChild) {
           if (Array.isArray(newChild)) {
             newChild = newChild.flat(Infinity)
             ctx = Array.isArray(ctx) ? ctx : [ctx]
             oldChild = Array.isArray(oldChild) ? oldChild : [oldChild]
 
             const _ctx = []
-            const newChildren = newChild.map(function (child, index) {
+            const newChildren = newChild.reduce(function updateChild (_children, child, _index) {
               if (child instanceof Partial) {
                 for (let i = 0, len = ctx.length; i < len; i++) {
                   if (ctx[i] && ctx[i].key === child.key) {
                     child.update(ctx[i])
                     _ctx.push(ctx.splice(i, 1, null))
-                    return oldChild[i]
+                    child = oldChild[i]
+                    break
                   }
                 }
-                var old = ctx[index] ? null : oldChild[index]
-                var res = child.render(old)
-                child.update(res)
-                _ctx.push(res)
-                return res.element
+                if (child instanceof Partial) {
+                  const oldNode = ctx[_index] ? null : oldChild[_index]
+                  const res = child.render(oldNode)
+                  child.update(res)
+                  _ctx.push(res)
+                  child = res.element
+                }
               } else {
                 _ctx.push(null)
-                return child
               }
-            })
+
+              var prev
+              // find previous sibling among new children
+              for (let i = _index; i >= 0; i--) prev = _children[i]
+              if (prev == null) {
+                // find previous sibling among element children
+                for (let i = index - 1; i >= 0; i--) {
+                  prev = children[i]
+                  if (Array.isArray(prev)) {
+                    // unwind and search through nested arrays of children
+                    for (let i = prev.length; i >= 0; i--) {
+                      prev = prev[i]
+                      if (prev != null) break
+                    }
+                  }
+                  if (prev != null) break
+                }
+              }
+
+              var next = prev && prev.nextSibling
+              if (next) {
+                // don't replace with self
+                if (!next.isSameNode(child)) {
+                  // insert before next sibling
+                  element.insertBefore(child, next)
+                }
+              } else {
+                element.appendChild(child)
+              }
+
+              _children.push(child)
+              return _children
+            }, [])
 
             for (const el of oldChild) {
               if (newChildren.includes(el)) continue
               removeChild(el)
-            }
-
-            let next = children[index + 1]
-            if (Array.isArray(next)) next = next[0]
-            for (const el of newChildren) {
-              if (next) element.insertBefore(el, next)
-              else element.appendChild(el)
             }
 
             ctx = _ctx
@@ -490,8 +538,8 @@ function createElement (tag, attrs, { namespace, isCustomElement }) {
 function createFragment (nodes) {
   var fragment = document.createDocumentFragment()
   for (const node of nodes) {
-    if (nodes == null) continue
-    fragment.appendChild(toNode(nodes))
+    if (node == null) continue
+    fragment.appendChild(toNode(node))
   }
   return fragment
 }

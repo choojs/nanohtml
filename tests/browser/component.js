@@ -23,6 +23,20 @@ test('renders array of children', function (t) {
   t.end()
 })
 
+test('renders fragments', function (t) {
+  var div = document.createElement('div')
+  var el = render(html`<span>Hello</span> <span>world!</span>`)
+  div.appendChild(el)
+  t.equal(div.childElementCount, 2, 'has children')
+  t.equal(div.innerText, 'Hello world!', 'children rendered')
+  div = document.createElement('div')
+  el = render(html`<div>${html`<span>Hello</span> <span>world!</span>`}</div>`)
+  div.appendChild(el)
+  t.equal(div.firstElementChild.childElementCount, 2, 'has nested children')
+  t.equal(div.innerText, 'Hello world!', 'nested children rendered')
+  t.end()
+})
+
 test('can mount in DOM', function (t) {
   var id = makeId()
   var div = document.createElement('div')
@@ -37,6 +51,14 @@ test('can mount in DOM', function (t) {
   t.ok(firstChild.isSameNode(res.firstElementChild), 'children morphed too')
   t.equal(res.innerText, 'Hello planet!', 'content match')
   document.body.removeChild(div)
+  t.end()
+})
+
+test('can mount fragments', function (t) {
+  var div = document.createElement('div')
+  var el = render(html`<span>Hello</span> <span>world!</span>`, div)
+  t.equal(div.childElementCount, 2, 'has children')
+  t.equal(div.innerText, 'Hello world!', 'children rendered')
   t.end()
 })
 
@@ -225,6 +247,20 @@ test('component can render', function (t) {
   function main (text) {
     return html`<div>${Greeting(text)}</div>`
   }
+})
+
+test.only('component can render fragment', function (t) {
+  var update
+  var Greeting = Component(function Greeting (text) {
+    update = onupdate()
+    return html`<span>Hello</span> ${html`<span>${text}!</span>`}`
+  })
+  var div = document.createElement('div')
+  var res = render(html`<div>${Greeting('world')}</div>`, div)
+  console.log(div.outerHTML)
+  update('planet')
+  console.log(div.outerHTML)
+  t.end()
 })
 
 test('component can update', function (t) {
