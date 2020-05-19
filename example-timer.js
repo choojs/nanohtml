@@ -1,4 +1,5 @@
-import { html, Component, memo, onupdate } from 'nanohtml'
+var { html, render } = require('./nanohtml')
+var { Component, memo, onupdate } = require('./component')
 
 var Awake = Component(function (time = memo(5000)) {
   var update = onupdate(function (time = memo()) {
@@ -15,7 +16,7 @@ var Awake = Component(function (time = memo(5000)) {
 
   return html`
     <h1>Stay awake!</h1>
-    <p>You have to click within ${Math.floor(time / 1000)} seconds</p>
+    <p>Click button within ${Math.floor(time / 1000)} seconds</p>
     ${time > 0 ? html`
       <button onclick=${() => update(5000)}>Click me!</button>
     ` : html`
@@ -24,8 +25,8 @@ var Awake = Component(function (time = memo(5000)) {
   `
 })
 
-html`
-  <div>
+render(html`
+  <body>
     ${Awake()}
-  </div>
-`
+  </body>
+`, document.body)

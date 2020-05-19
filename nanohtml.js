@@ -112,7 +112,7 @@ function h (tag, attrs, children) {
 
     var editors = []
 
-    Object.entries(attrs).forEach(function ([name, value]) {
+    Object.entries(attrs).forEach(function handleAttribute ([name, value]) {
       if (isPlaceholder(name)) {
         editors.push({
           index: getPlaceholderIndex(name),
@@ -128,13 +128,16 @@ function h (tag, attrs, children) {
           }
         })
       } else if (PLACEHOLDER_INDEX.test(value)) {
-        value.replace(PLACEHOLDER_INDEX, function (placeholder) {
+        value.replace(PLACEHOLDER_INDEX, function placeholderAttr (match) {
           editors.push({
-            index: getPlaceholderIndex(placeholder),
+            index: getPlaceholderIndex(match),
             update (_, all) {
-              var next = value.replace(PLACEHOLDER_INDEX, function (_, index) {
-                return all[index]
-              })
+              var next = value.replace(
+                PLACEHOLDER_INDEX,
+                function updateAttr (_, index) {
+                  return all[index]
+                }
+              )
               setAttribute(name, next)
             }
           })

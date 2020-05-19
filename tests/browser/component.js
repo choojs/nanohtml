@@ -241,9 +241,9 @@ test('component can update', function (t) {
   var state = BEFORE_UPDATE
   var Greeting = Component(function Greeting (value) {
     update = onupdate(function afterupdate (value) {
-      t.equal(state, value, 'afterupdate called with latest argument')
+      t.equal(value, state, 'afterupdate called with latest argument')
       return function beforeupdate (value) {
-        t.equal(state, value, 'beforeupdate called with latest argument')
+        t.equal(value, state, 'beforeupdate called with latest argument')
       }
     })
     return html`<span>Hello <span id="${id}">${value}</span>!</span>`

@@ -1,9 +1,12 @@
-import { html, Component, memo, onupdate, onload } from 'nanohtml'
-import mapboxgl from 'mapbox-gl'
+var mapboxgl = require('mapbox-gl')
+var { html, render } = require('nanohtml')
+var { Component, memo, onupdate, onload } = require('nanohtml/component')
 
 var Map = Component(function ([lng, lat]) {
-  var update = onupdate(function (next, map = memo()) {
-    if (map && (next[0] !== lng || next[1] !== lat)) map.panTo(next)
+  var update = onupdate(function (prev) {
+    return function beforeupdate (next, map = memo()) {
+      if (map && prev.join() !== next.join()) map.panTo(next)
+    }
   })
 
   onload(function (el) {
@@ -26,8 +29,8 @@ var Map = Component(function ([lng, lat]) {
   return html`<div></div>`
 })
 
-html`
+render(html`
   <body>
     ${Map([lng, lat])}
   </body>
-`
+`, document.body)

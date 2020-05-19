@@ -16,9 +16,9 @@ exports.identifier = identifier
 
 function Component (fn, key, args) {
   if (this instanceof Component) {
+    this.beforeupdate = []
     this.afterupdate = []
     this.beforeload = []
-    this.cleanup = []
     this.refs = []
     this.args = args
     this.key = key
@@ -26,7 +26,7 @@ function Component (fn, key, args) {
     return this
   }
 
-  key = fn.name ? Symbol(fn.name) : Symbol('nanohtml/component')
+  key = Symbol(fn.name || 'nanohtml/component')
   return function (...args) {
     return new Component(fn, key, args)
   }
@@ -43,10 +43,13 @@ Component.prototype.key = function key (key) {
 Component.prototype.resolve = function (ctx) {
   var cached = ctx ? ctx.state.get(identifier) : null
   this.index = this.args.length
-  if (cached) this.args = cached.args.map((arg, i) => this.args[i] || arg)
+  if (cached) {
+    this.args = cached.args.map((arg, i) => {
+      return typeof this.args[i] === 'undefined' ? arg : this.args[i]
+    }).concat(this.args.slice(cached.args.length))
+  }
   stack.unshift(this)
   try {
-    if (cached) unwind(cached.cleanup, this.args)
     const partial = this.fn(...this.args)
     partial.key = this.key
     return partial
@@ -66,10 +69,12 @@ Component.prototype.render = function (oldNode) {
 
 Component.prototype.update = function (ctx) {
   this.ctx = ctx // store context for async updates
-  var partial = this.rendered || this.resolve(ctx)
-  Partial.prototype.update.call(partial, ctx)
+  var cached = ctx.state.get(identifier)
   stack.unshift(this)
   try {
+    const partial = this.rendered || this.resolve(ctx)
+    unwind(cached.beforeupdate, this.args)
+    Partial.prototype.update.call(partial, ctx)
     unwind(this.refs.map((ref) => (el) => ref.init(el)), [ctx.element])
     assert(
       this.refs.every(({ uid }) => !ctx.element.classList.contains(uid)),
@@ -77,6 +82,7 @@ Component.prototype.update = function (ctx) {
     )
     unwind(this.afterupdate, this.args)
     unwind(this.beforeload, [ctx.element])
+    ctx.state.set(identifier, this)
   } finally {
     const component = stack.shift()
     assert(component === this, 'nanohtml/component: stack out of sync')
@@ -84,6 +90,7 @@ Component.prototype.update = function (ctx) {
 }
 
 function Ref (uid = makeId()) {
+  assert(stack.length, 'nanohtml/component: cannot call Ref outside component render cycle')
   this.uid = uid
   stack[0].refs.push(this)
   if (typeof window === 'undefined' || typeof Proxy !== 'function') return this
@@ -128,12 +135,13 @@ function makeId () {
 }
 
 function onupdate (fn) {
+  assert(stack.length, 'nanohtml/component: cannot call onupdate outside component render cycle')
   var component = stack[0]
   if (typeof fn === 'function') {
     component.afterupdate.push(function (...args) {
       var res = fn(...args)
       if (typeof res === 'function') {
-        component.cleanup.push(res)
+        component.beforeupdate.push(res)
       }
     })
   }
@@ -146,6 +154,7 @@ function onupdate (fn) {
 }
 
 function memo (initial) {
+  assert(stack.length, 'nanohtml/component: cannot call memo outside component render cycle')
   var index = stack[0].index++
   var { args } = stack[0]
   var value = args[index]
@@ -180,6 +189,7 @@ function memo (initial) {
  * SOFTWARE.
  */
 function onload (fn) {
+  assert(stack.length, 'nanohtml/component: cannot call onload outside component render cycle')
   stack[0].beforeload.push(function (el) {
     el.classList.add(loadid)
 

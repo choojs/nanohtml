@@ -1,4 +1,5 @@
-import { html, Component, memo, onupdate } from 'nanohtml'
+var { html, render } = require('nanohtml')
+var { Component, memo, onupdate } = require('nanohtml/component')
 
 var Form = Component(function (fields, values = memo(getInitialValues)) {
   var update = onupdate(function (fields, values) {
@@ -25,11 +26,11 @@ function getInitialValues (fields) {
   }, {})
 }
 
-html`
+render(html`
   <body>
     ${Form([
       { type: 'text', name: 'firstname' },
       { type: 'text', name: 'lastname' }
     ])}
   </body>
-`
+`, document.body)
