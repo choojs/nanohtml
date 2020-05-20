@@ -61,7 +61,7 @@ Component.prototype.resolve = function (ctx) {
 
 Component.prototype.render = function (oldNode) {
   var partial = this.resolve()
-  ctx = Partial.prototype.render.call(partial, oldNode)
+  var ctx = Partial.prototype.render.call(partial, oldNode)
   ctx.state.set(identifier, this)
   this.rendered = partial
   return ctx

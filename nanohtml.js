@@ -70,13 +70,11 @@ Partial.prototype.render = function render (oldNode) {
 
     if (typeof template === 'string') {
       if (isPlaceholder(template)) {
-        // the only child is a partial, e.g. html`${html`<p>Hi</p>`}`
-        if (values[0] instanceof Partial) return values[0].render(oldNode)
-        // the only child is not html, e.g. html`${'Hi'}`
-        return h(FRAGMENT, {}, values)(values, key, oldNode)
+        // the only child is a partial, e.g. html`${html`<p>Hi</p>`}` or html`${'Hi'}`
+        template = h(FRAGMENT, {}, placeholders)
       } else {
         // the only child is text, e.g. html`Hi`
-        return h(FRAGMENT, {}, [template])(values, key, oldNode)
+        template = h(FRAGMENT, {}, [template])
       }
     }
 
@@ -252,6 +250,7 @@ function h (tag, attrs, children) {
                 }
               }
 
+              child = toNode(child)
               var next = prev && prev.nextSibling
               if (next) {
                 // don't replace with self
@@ -331,7 +330,7 @@ function h (tag, attrs, children) {
             return ctx.key === child.key
           }
 
-          let editor = {
+          const editor = {
             index: placeholderIndex,
             update: createUpdate(null, node)
           }
