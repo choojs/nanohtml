@@ -10,7 +10,7 @@ const templates = new WeakMap()
 const PLACEHOLDER_INDEX = /\0placeholder(\d+)\0/g
 const XLINKNS = 'http://www.w3.org/1999/xlink'
 const SVGNS = 'http://www.w3.org/2000/svg'
-const FRAGMENT = '__fragment'
+const FRAGMENT = Symbol('fragment')
 const COMMENT_TAG = '!--'
 const TEXT_NODE = 3
 
@@ -212,7 +212,11 @@ function h (tag, attrs, children) {
 
             const _ctx = []
             const newChildren = newChild.reduce(function updateChild (_children, child, _index) {
-              if (child instanceof Partial) {
+              if (isGenerator(child)) child = unwind(child)
+              if (isPromise(child)) {
+                child.then(unwind).then(insert)
+                child = null
+              } else if (child instanceof Partial) {
                 for (let i = 0, len = ctx.length; i < len; i++) {
                   if (ctx[i] && ctx[i].key === child.key) {
                     child.update(ctx[i])
@@ -232,38 +236,36 @@ function h (tag, attrs, children) {
                 _ctx.push(null)
               }
 
-              var prev
-              // find previous sibling among new children
-              for (let i = _index; i >= 0; i--) prev = _children[i]
-              if (prev == null) {
-                // find previous sibling among element children
-                for (let i = index - 1; i >= 0; i--) {
-                  prev = children[i]
-                  if (Array.isArray(prev)) {
-                    // unwind and search through nested arrays of children
-                    for (let i = prev.length; i >= 0; i--) {
-                      prev = prev[i]
-                      if (prev != null) break
-                    }
-                  }
-                  if (prev != null) break
-                }
-              }
-
-              child = toNode(child)
-              var next = prev && prev.nextSibling
-              if (next) {
-                // don't replace with self
-                if (!next.isSameNode(child)) {
-                  // insert before next sibling
-                  element.insertBefore(child, next)
-                }
-              } else {
-                element.appendChild(child)
-              }
+              insert(child)
 
               _children.push(child)
               return _children
+
+              function insert (child) {
+                if (child == null) return
+                if (child instanceof Partial) {
+                  const ctx = child.render()
+                  child.update(ctx)
+                  ctx[_index] = ctx
+                  child = ctx.element
+                } else {
+                  child = toNode(child)
+                }
+                var prev = getPrevSibling(_children, _index - 1)
+                if (prev == null) prev = getPrevSibling(children, index - 1)
+                var next = prev == null ? element.children[0] : prev.nextSibling
+                if (next && next.isSameNode(child)) return
+                if (next) element.insertBefore(child, next)
+                else element.appendChild(child)
+                _children[_index] = child
+              }
+
+              function getPrevSibling (nodes, start = nodes.length - 1) {
+                var res
+                for (let i = start; i >= 0; i--) res = nodes[i]
+                if (Array.isArray(res)) return getPrevSibling(res)
+                return res
+              }
             }, [])
 
             for (const el of oldChild) {
@@ -273,6 +275,10 @@ function h (tag, attrs, children) {
 
             ctx = _ctx
             children[index] = oldChild = newChildren
+          } else if (isGenerator(newChild) || isPromise(newChild)) {
+            const res = unwind(newChild)
+            if (isPromise(res)) res.then(unwind).then(update)
+            else update(res)
           } else if (newChild instanceof Partial) {
             if (ctx && newChild.key === ctx.key) {
               newChild.update(ctx)
@@ -413,6 +419,17 @@ function h (tag, attrs, children) {
       element = newElement
     }
 
+    function insertBefore (newChild, oldChild) {
+      oldChild = Array.isArray(oldChild) ? oldChild[0] : oldChild
+      if (Array.isArray(newChild)) {
+        for (const child of newChild) {
+          element.insertBefore(child, oldChild)
+        }
+      } else {
+        element.insertBefore(newChild, oldChild)
+      }
+    }
+
     function setAttribute (name, value) {
       var key = name.toLowerCase()
 
@@ -451,24 +468,34 @@ function h (tag, attrs, children) {
   }
 }
 
+function unwind (obj, value) {
+  if (isGenerator(obj)) {
+    const res = obj.next(value)
+    if (res.done) return res.value
+    if (isPromise(res.value)) {
+      return res.value.then((val) => unwind(obj, val))
+    }
+    return unwind(obj, res.value)
+  } else if (isPromise(obj)) {
+    return obj.then(unwind)
+  }
+  return obj
+}
+
+function isPromise (obj) {
+  return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function'
+}
+
+function isGenerator (obj) {
+  return obj && typeof obj.next === 'function' && typeof obj.throw === 'function'
+}
+
 function removeChild (child) {
   if (!child) return
   if (Array.isArray(child)) {
     for (const el of child) el.remove()
   } else {
     child.remove()
-  }
-}
-
-function insertBefore (newChild, oldChild) {
-  oldChild = Array.isArray(oldChild) ? oldChild[0] : oldChild
-  var parent = oldChild.parentElement
-  if (Array.isArray(newChild)) {
-    for (const child of newChild) {
-      parent.insertBefore(child, oldChild)
-    }
-  } else {
-    parent.insertBefore(newChild, oldChild)
   }
 }
 

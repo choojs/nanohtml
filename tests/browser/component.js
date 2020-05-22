@@ -265,6 +265,53 @@ test('reordering children', function (t) {
   }
 })
 
+test('async partials', function (t) {
+  t.test('resolves generators', function (t) {
+    t.plan(3)
+    var div = document.createElement('div')
+    render(html`<div>Hello ${outer('world')}!</div>`, div)
+    t.equal(div.innerText, 'Hello world!', 'content rendered')
+
+    function * outer (text) {
+      var res = yield * inner(text)
+      t.equal(res, text, 'nested generators are unwound')
+      return html`<span>${res}</span>`
+
+      function * inner (arg) {
+        var res = yield 'foo'
+        t.equal(res, 'foo', 'yielded values are returned')
+        return arg
+      }
+    }
+  })
+
+  t.test('resolves promises', function (t) {
+    t.plan(2)
+    var div = document.createElement('div')
+    render(html`<div>Hello ${Promise.resolve('world')}!</div>`, div)
+    t.equal(div.innerText, 'Hello !', 'promise partial left blank')
+    window.requestAnimationFrame(function () {
+      t.equal(div.innerText, 'Hello world!', 'content updated once resolved')
+    })
+  })
+
+  t.test('resolves promises within generators', function (t) {
+    t.plan(3)
+    var div = document.createElement('div')
+    render(html`<div>Hello ${partial('world')}!</div>`, div)
+    t.equal(div.innerText, 'Hello !', 'promise partial left blank')
+    window.requestAnimationFrame(function () {
+      t.equal(div.innerText, 'Hello world!', 'content updated once resolved')
+    })
+
+    function * partial (text) {
+      var res = yield Promise.resolve(text)
+      t.equal(res, text, 'yielded promises are resolved')
+      return html`<span>${res}</span>`
+    }
+  })
+})
+
 test('component can render', function (t) {
   var id = makeId()
   var div = document.createElement('div')
