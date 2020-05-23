@@ -295,19 +295,40 @@ test('async partials', function (t) {
     })
   })
 
-  t.test('resolves promises within generators', function (t) {
+  t.test('recursively resolves nested generators and promises', function (t) {
     t.plan(3)
     var div = document.createElement('div')
-    render(html`<div>Hello ${partial('world')}!</div>`, div)
+    render(html`<div>Hello ${outer('world')}!</div>`, div)
     t.equal(div.innerText, 'Hello !', 'promise partial left blank')
     window.requestAnimationFrame(function () {
       t.equal(div.innerText, 'Hello world!', 'content updated once resolved')
     })
 
-    function * partial (text) {
-      var res = yield Promise.resolve(text)
+    function * outer (text) {
+      var res = yield Promise.resolve(inner(text))
       t.equal(res, text, 'yielded promises are resolved')
       return html`<span>${res}</span>`
+
+      function * inner (text) {
+        var res = yield text
+        return res
+      }
+    }
+  })
+
+  t.test('top level async generators resolve', function (t) {
+    t.plan(3)
+    var div = document.createElement('div')
+    var res = render(main('world'), div)
+    t.ok(res instanceof Promise, 'returns promise')
+    t.equal(div.innerText, '', 'nothing renderd async')
+    res.then(function () {
+      t.equal(div.innerText, 'Hello world!', 'content updated once resolved')
+    })
+
+    function * main (text) {
+      var res = yield Promise.resolve(text)
+      return html`<div>Hello ${res}!</div>`
     }
   })
 })

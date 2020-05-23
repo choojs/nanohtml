@@ -29,19 +29,26 @@ function render (partial, oldNode) {
   if (ctx && ctx.key === partial.key) {
     partial.update(ctx)
     return oldNode
-  } else {
-    const ctx = partial.render(oldNode)
-    partial.update(ctx)
-    if (oldNode && !ctx.element.isSameNode(oldNode)) {
-      if (ctx.element instanceof window.DocumentFragment) {
-        removeChild(Array.from(oldNode.childNodes))
-        oldNode.appendChild(ctx.element)
-      } else {
-        oldNode.parentElement.replaceChild(ctx.element, oldNode)
-      }
-    }
-    return ctx.element
   }
+
+  if (isGenerator(partial) || isPromise(partial)) {
+    partial = unwind(partial)
+    if (isPromise(partial)) {
+      return partial.then((partial) => render(partial, oldNode))
+    }
+  }
+
+  ctx = partial.render(oldNode)
+  partial.update(ctx)
+  if (oldNode && !ctx.element.isSameNode(oldNode)) {
+    if (ctx.element instanceof window.DocumentFragment) {
+      removeChild(Array.from(oldNode.childNodes))
+      oldNode.appendChild(ctx.element)
+    } else {
+      oldNode.parentElement.replaceChild(ctx.element, oldNode)
+    }
+  }
+  return ctx.element
 }
 
 function Partial ({ template, values }) {
@@ -214,7 +221,7 @@ function h (tag, attrs, children) {
             const newChildren = newChild.reduce(function updateChild (_children, child, _index) {
               if (isGenerator(child)) child = unwind(child)
               if (isPromise(child)) {
-                child.then(unwind).then(insert)
+                child.then(insert)
                 child = null
               } else if (child instanceof Partial) {
                 for (let i = 0, len = ctx.length; i < len; i++) {
@@ -277,7 +284,7 @@ function h (tag, attrs, children) {
             children[index] = oldChild = newChildren
           } else if (isGenerator(newChild) || isPromise(newChild)) {
             const res = unwind(newChild)
-            if (isPromise(res)) res.then(unwind).then(update)
+            if (isPromise(res)) res.then(update)
             else update(res)
           } else if (newChild instanceof Partial) {
             if (ctx && newChild.key === ctx.key) {
@@ -473,7 +480,7 @@ function unwind (obj, value) {
     const res = obj.next(value)
     if (res.done) return res.value
     if (isPromise(res.value)) {
-      return res.value.then((val) => unwind(obj, val))
+      return res.value.then(unwind).then((val) => unwind(obj, val))
     }
     return unwind(obj, res.value)
   } else if (isPromise(obj)) {
