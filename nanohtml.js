@@ -438,6 +438,13 @@ function h (tag, attrs, children) {
     }
 
     function setAttribute (name, value) {
+      if (isGenerator(value) || isPromise(value)) {
+        value = unwind(value)
+        if (isPromise(value)) {
+          return value.then((value) => setAttribute(name, value))
+        }
+      }
+
       var key = name.toLowerCase()
 
       // Normalize className

@@ -267,47 +267,51 @@ test('reordering children', function (t) {
 
 test('async partials', function (t) {
   t.test('resolves generators', function (t) {
-    t.plan(3)
+    t.plan(5)
     var div = document.createElement('div')
-    render(html`<div>Hello ${outer('world')}!</div>`, div)
+    render(html`<div data-test="${echo('test')}">Hello ${outer('world')}!</div>`, div)
     t.equal(div.innerText, 'Hello world!', 'content rendered')
+    t.equal(div.dataset.test, 'test', 'attribute resolved')
 
     function * outer (text) {
-      var res = yield * inner(text)
+      var res = yield * echo(text)
       t.equal(res, text, 'nested generators are unwound')
       return html`<span>${res}</span>`
+    }
 
-      function * inner (arg) {
-        var res = yield 'foo'
-        t.equal(res, 'foo', 'yielded values are returned')
-        return arg
-      }
+    function * echo (arg) {
+      var res = yield 'foo'
+      t.equal(res, 'foo', 'yielded values are returned')
+      return arg
     }
   })
 
   t.test('resolves promises', function (t) {
-    t.plan(2)
+    t.plan(4)
     var div = document.createElement('div')
-    render(html`<div>Hello ${Promise.resolve('world')}!</div>`, div)
+    render(html`<div data-test="${Promise.resolve('test')}">Hello ${Promise.resolve('world')}!</div>`, div)
     t.equal(div.innerText, 'Hello !', 'promise partial left blank')
+    t.equal(div.dataset.test, undefined, 'attribute left blank')
     window.requestAnimationFrame(function () {
       t.equal(div.innerText, 'Hello world!', 'content updated once resolved')
+      t.equal(div.dataset.test, 'test', 'attribute updated once resolved')
     })
   })
 
   t.test('recursively resolves nested generators and promises', function (t) {
-    t.plan(3)
+    t.plan(4)
     var div = document.createElement('div')
     render(html`<div>Hello ${outer('world')}!</div>`, div)
     t.equal(div.innerText, 'Hello !', 'promise partial left blank')
     window.requestAnimationFrame(function () {
       t.equal(div.innerText, 'Hello world!', 'content updated once resolved')
+      t.equal(div.firstElementChild.dataset.test, 'test', 'attribute updated once resolved')
     })
 
     function * outer (text) {
       var res = yield Promise.resolve(inner(text))
       t.equal(res, text, 'yielded promises are resolved')
-      return html`<span>${res}</span>`
+      return html`<span data-test="${Promise.resolve('test')}">${res}</span>`
 
       function * inner (text) {
         var res = yield text
@@ -469,7 +473,7 @@ test('component can access children with ref', function (t) {
         t.equal(b, refB[0], 'ref b found')
         t.equal(b.className, 'test', 'custom className used')
         t.equal(refB.toString(), 'test', 'can be serialized to string')
-        t.equal(JSON.stringify({ refB }), '{"refB":"test"}', 'can be serialized to JSON')
+        t.equal(JSON.stringify(refB), '"test"', 'can be serialized to JSON')
         document.body.removeChild(div)
       })
     })

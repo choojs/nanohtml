@@ -97,8 +97,7 @@ function Ref (uid = makeId()) {
   return new Proxy(this, {
     get: (self, key, receiver) => {
       if (this[key]) return this[key]
-      assert(this.collection, 'nanohtml/component: cannot access ref during render')
-      return Reflect.get(this.collection, key, receiver)
+      return Reflect.get(this.collection || this, key, receiver)
     }
   })
 }
