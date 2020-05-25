@@ -5,12 +5,14 @@ const BOOL_PROPS = require('./lib/bool-props')
 const DIRECT_PROPS = require('./lib/direct-props')
 
 const cache = new WeakMap()
+const pending = new WeakMap()
 const templates = new WeakMap()
 
 const PLACEHOLDER_INDEX = /\0placeholder(\d+)\0/g
 const XLINKNS = 'http://www.w3.org/1999/xlink'
 const SVGNS = 'http://www.w3.org/2000/svg'
 const FRAGMENT = Symbol('fragment')
+const PENDING = Symbol('pending')
 const COMMENT_TAG = '!--'
 const TEXT_NODE = 3
 
@@ -25,17 +27,24 @@ function html (template, ...values) {
 }
 
 function render (partial, oldNode) {
-  var ctx = oldNode && cache.get(oldNode)
-  if (ctx && ctx.key === partial.key) {
-    partial.update(ctx)
-    return oldNode
-  }
+  if (oldNode) pending.delete(oldNode)
 
   if (isGenerator(partial) || isPromise(partial)) {
     partial = unwind(partial)
     if (isPromise(partial)) {
-      return partial.then((partial) => render(partial, oldNode))
+      if (oldNode) pending.set(oldNode, partial)
+      return partial.then(function (res) {
+        if (!oldNode || pending.get(oldNode) === partial) {
+          return render(res, oldNode)
+        }
+      })
     }
+  }
+
+  var ctx = oldNode && cache.get(oldNode)
+  if (ctx && ctx.key === partial.key) {
+    partial.update(ctx)
+    return oldNode
   }
 
   ctx = partial.render(oldNode)
@@ -92,6 +101,7 @@ Partial.prototype.render = function render (oldNode) {
 }
 
 Partial.prototype.update = function update (ctx) {
+  ctx.state.get(PENDING).clear()
   for (const { update, index } of ctx.editors) {
     update(this.values[index], this.values)
   }
@@ -100,8 +110,8 @@ Partial.prototype.update = function update (ctx) {
 function Context ({ key, element, editors, bind }) {
   this.key = key
   this.bind = bind
-  this.state = new Map()
   this.element = element
+  this.state = new Map([[PENDING, new Set()]])
   this.editors = editors.slice().sort((a, b) => a.index - b.index)
 }
 
@@ -284,8 +294,13 @@ function h (tag, attrs, children) {
             children[index] = oldChild = newChildren
           } else if (isGenerator(newChild) || isPromise(newChild)) {
             const res = unwind(newChild)
-            if (isPromise(res)) res.then(update)
-            else update(res)
+            if (isPromise(res)) {
+              ctx = null
+              children[index] = oldChild = replaceChild(null, oldChild)
+              queue(res).then((newChild) => update(newChild))
+            } else {
+              update(res)
+            }
           } else if (newChild instanceof Partial) {
             if (ctx && newChild.key === ctx.key) {
               newChild.update(ctx)
@@ -418,9 +433,9 @@ function h (tag, attrs, children) {
       }
     }
 
-    var res = new Context({ key, element, editors, bind })
-    cache.set(element, res)
-    return res
+    var ctx = new Context({ key, element, editors, bind })
+    cache.set(element, ctx)
+    return ctx
 
     function bind (newElement) {
       element = newElement
@@ -438,10 +453,16 @@ function h (tag, attrs, children) {
     }
 
     function setAttribute (name, value) {
+      if (value == null) {
+        element.removeAttribute(name)
+        return
+      }
+
       if (isGenerator(value) || isPromise(value)) {
         value = unwind(value)
         if (isPromise(value)) {
-          return value.then((value) => setAttribute(name, value))
+          queue(value).then((value) => setAttribute(name, value))
+          return
         }
       }
 
@@ -478,6 +499,20 @@ function h (tag, attrs, children) {
           element.setAttribute(name, value)
         }
       }
+    }
+
+    function queue (promise) {
+      var ctx = cache.get(element)
+      var pending = ctx.state.get(PENDING)
+      pending.add(promise)
+      return new Promise(function (resolve, reject) {
+        promise.then(function (value) {
+          if (pending.has(promise)) {
+            pending.delete(promise)
+            resolve(value)
+          }
+        }, reject)
+      })
     }
   }
 }

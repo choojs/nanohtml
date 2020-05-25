@@ -335,6 +335,23 @@ test('async partials', function (t) {
       return html`<div>Hello ${res}!</div>`
     }
   })
+
+  t.test('does not succomb to race condition', function (t) {
+    t.plan(4)
+    var div = document.createElement('div')
+    render(Promise.resolve(main(Promise.resolve('world'))), div)
+    render(main('planet'), div)
+    t.equal(div.innerText, 'Hello planet!', 'sync content rendered')
+    t.equal(div.dataset.test, 'planet', 'sync attribute rendered')
+    window.requestAnimationFrame(function () {
+      t.equal(div.innerText, 'Hello planet!', 'sync content persisted')
+      t.equal(div.dataset.test, 'planet', 'sync attribute persisted')
+    })
+
+    function main (val) {
+      return html`<div data-test="${val}">Hello ${val}!</div>`
+    }
+  })
 })
 
 test('component can render', function (t) {
