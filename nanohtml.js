@@ -27,18 +27,16 @@ function html (template, ...values) {
 }
 
 function render (partial, oldNode) {
-  if (oldNode) pending.delete(oldNode)
+  partial = unwind(partial)
 
-  if (isGenerator(partial) || isPromise(partial)) {
-    partial = unwind(partial)
-    if (isPromise(partial)) {
-      if (oldNode) pending.set(oldNode, partial)
-      return partial.then(function (res) {
-        if (!oldNode || pending.get(oldNode) === partial) {
-          return render(res, oldNode)
-        }
-      })
-    }
+  if (oldNode) pending.delete(oldNode)
+  if (isPromise(partial)) {
+    if (oldNode) pending.set(oldNode, partial)
+    return partial.then(function (res) {
+      if (!oldNode || pending.get(oldNode) === partial) {
+        return render(res, oldNode)
+      }
+    })
   }
 
   var ctx = oldNode && cache.get(oldNode)
@@ -72,7 +70,7 @@ Partial.prototype.render = function render (oldNode) {
 
   if (!template) {
     const placeholders = values.map(function toPlaceholder (_, index) {
-      return '\0placeholder' + index + '\0'
+      return `\0placeholder${index}\0`
     })
 
     const parser = hyperx(h, {
@@ -112,6 +110,7 @@ function Context ({ key, element, editors, bind }) {
   this.bind = bind
   this.element = element
   this.state = new Map([[PENDING, new Set()]])
+  this.isPlaceholder = isPlaceholder(element.nodeValue)
   this.editors = editors.slice().sort((a, b) => a.index - b.index)
 }
 
@@ -200,7 +199,7 @@ function h (tag, attrs, children) {
           children[index] = appendChild(child, placeholderIndex)
           editors.push({
             index: placeholderIndex,
-            update: createUpdate(null, child)
+            update: createUpdate(child)
           })
         }
       } else if (child instanceof Context) {
@@ -220,99 +219,77 @@ function h (tag, attrs, children) {
 
       return children
 
-      function createUpdate (ctx, oldChild) {
+      function createUpdate (oldChild) {
         return function update (newChild) {
+          newChild = unwind(newChild)
+
           if (Array.isArray(newChild)) {
             newChild = newChild.flat(Infinity)
-            ctx = Array.isArray(ctx) ? ctx : [ctx]
             oldChild = Array.isArray(oldChild) ? oldChild : [oldChild]
 
-            const _ctx = []
-            const newChildren = newChild.reduce(function updateChild (_children, child, _index) {
-              if (isGenerator(child)) child = unwind(child)
+            const newChildren = newChild.map(function (child, index) {
+              child = unwind(child)
               if (isPromise(child)) {
-                child.then(insert)
-                child = null
-              } else if (child instanceof Partial) {
-                for (let i = 0, len = ctx.length; i < len; i++) {
-                  if (ctx[i] && ctx[i].key === child.key) {
-                    child.update(ctx[i])
-                    _ctx.push(ctx.splice(i, 1, null))
-                    child = oldChild[i]
-                    break
+                queue(child).then(function (child) {
+                  appendInPlace(child, index, newChildren)
+                  newChildren[index] = child
+                })
+                return null
+              }
+              if (child instanceof Partial) {
+                for (let i = 0, len = oldChild.length; i < len; i++) {
+                  const ctx = cache.get(oldChild[i])
+                  if (ctx && ctx.key === child.key) {
+                    child.update(ctx)
+                    return oldChild.splice(i, 1)[0]
                   }
                 }
-                if (child instanceof Partial) {
-                  const oldNode = ctx[_index] ? null : oldChild[_index]
-                  const res = child.render(oldNode)
-                  child.update(res)
-                  _ctx.push(res)
-                  child = res.element
-                }
-              } else {
-                _ctx.push(null)
+                const res = child.render()
+                child.update(res)
+                return res.element
               }
+              return toNode(child)
+            })
 
-              insert(child)
-
-              _children.push(child)
-              return _children
-
-              function insert (child) {
-                if (child == null) return
-                if (child instanceof Partial) {
-                  const ctx = child.render()
-                  child.update(ctx)
-                  ctx[_index] = ctx
-                  child = ctx.element
-                } else {
-                  child = toNode(child)
-                }
-                var prev = getPrevSibling(_children, _index - 1)
-                if (prev == null) prev = getPrevSibling(children, index - 1)
-                var next = prev == null ? element.children[0] : prev.nextSibling
-                if (next && next.isSameNode(child)) return
-                if (next) element.insertBefore(child, next)
-                else element.appendChild(child)
-                _children[_index] = child
-              }
-
-              function getPrevSibling (nodes, start = nodes.length - 1) {
-                var res
-                for (let i = start; i >= 0; i--) res = nodes[i]
-                if (Array.isArray(res)) return getPrevSibling(res)
-                return res
-              }
-            }, [])
+            newChildren.forEach(appendInPlace)
 
             for (const el of oldChild) {
-              if (newChildren.includes(el)) continue
               removeChild(el)
             }
 
-            ctx = _ctx
             children[index] = oldChild = newChildren
-          } else if (isGenerator(newChild) || isPromise(newChild)) {
-            const res = unwind(newChild)
-            if (isPromise(res)) {
-              ctx = null
-              children[index] = oldChild = replaceChild(null, oldChild)
-              queue(res).then((newChild) => update(newChild))
-            } else {
-              update(res)
-            }
+          } else if (isPromise(newChild)) {
+            children[index] = oldChild = replaceChild(null, oldChild)
+            queue(newChild).then((newChild) => update(newChild))
           } else if (newChild instanceof Partial) {
-            if (ctx && newChild.key === ctx.key) {
+            let ctx = cache.get(oldChild)
+            if (ctx && newChild.key === ctx.key && !ctx.isPlaceholder) {
               newChild.update(ctx)
-              return
+            } else {
+              ctx = newChild.render(oldChild)
+              newChild.update(ctx)
+              children[index] = oldChild = replaceChild(ctx.element, oldChild)
             }
-            ctx = newChild.render(oldChild)
-            newChild.update(ctx)
-            children[index] = oldChild = replaceChild(ctx.element, oldChild)
           } else {
-            ctx = null
             children[index] = oldChild = replaceChild(newChild, oldChild)
           }
+        }
+
+        function appendInPlace (node, _index, _children) {
+          if (!node) return
+          var prev = getPrevSibling(_children, _index - 1)
+          if (!prev) prev = getPrevSibling(children, index - 1)
+          var next = prev ? prev.nextSibling : element.children[0]
+          if (next && next.isSameNode(node)) return
+          if (next) element.insertBefore(node, next)
+          else element.appendChild(node)
+        }
+
+        function getPrevSibling (nodes, start = nodes.length - 1) {
+          var res
+          for (let i = start; i >= 0; i--) res = nodes[i]
+          if (Array.isArray(res)) return getPrevSibling(res)
+          return res
         }
       }
 
@@ -323,13 +300,13 @@ function h (tag, attrs, children) {
           for (let i = 0; i < oldChildren.length; i++) {
             let oldChild = oldChildren[i]
             if (child instanceof Partial) {
-              let ctx = cache.get(oldChild)
+              node = document.createComment('placeholder')
+              const ctx = cache.get(oldChild)
               if (ctx && ctx.key === child.key) {
-                child.update(ctx)
                 oldChildren.splice(i, 1)
                 editors.push({
                   index: placeholderIndex,
-                  update: createUpdate(ctx, oldChild)
+                  update: createUpdate(oldChild)
                 })
                 return oldChild
               }
@@ -339,7 +316,7 @@ function h (tag, attrs, children) {
               if (node.nodeType === TEXT_NODE) {
                 oldChild.nodeValue = node.nodeValue
               } else {
-                let ctx = cache.get(node)
+                const ctx = cache.get(node)
                 if (ctx) ctx.bind(oldChild)
                 morph(node, oldChild)
                 updateChildren(node, oldChild)
@@ -351,27 +328,31 @@ function h (tag, attrs, children) {
         }
 
         if (child instanceof Partial) {
-          node = document.createComment('placeholder')
-          node.isSameNode = function (otherNode) {
-            if (!cache.has(otherNode)) return false
-            var ctx = cache.get(otherNode)
-            return ctx.key === child.key
+          node = document.createComment(`\0placeholder${placeholderIndex}\0`)
+
+          // have placeholder identify as compatible with any element created
+          // from the same template
+          node.isSameNode = function isSameNode (node) {
+            if (!cache.has(node)) return false
+            return cache.get(node).key === child.key
           }
 
           const editor = {
             index: placeholderIndex,
-            update: createUpdate(null, node)
+            update: createUpdate(node)
           }
-
-          editors.push(editor)
-          cache.set(node, new Context({
+          const ctx = new Context({
             key: child.key,
             element: node,
             editors: [editor],
             bind (newNode) {
-              editor.update = createUpdate(null, newNode)
+              // replace update with updater scoped to the new node
+              editor.update = createUpdate(newNode)
             }
-          }))
+          })
+
+          editors.push(editor)
+          cache.set(node, ctx)
         }
 
         node = node || toNode(child)
@@ -391,7 +372,7 @@ function h (tag, attrs, children) {
                 insertBefore(newChild, oldChild)
                 removeChild(oldChild)
               } else if (!newChild.isSameNode(oldChild)) {
-                oldChild.parentNode.replaceChild(newChild, oldChild)
+                element.replaceChild(newChild, oldChild)
               }
             } else {
               insertBefore(newChild, oldChild)
@@ -453,17 +434,16 @@ function h (tag, attrs, children) {
     }
 
     function setAttribute (name, value) {
+      value = unwind(value)
+
       if (value == null) {
         element.removeAttribute(name)
         return
       }
 
-      if (isGenerator(value) || isPromise(value)) {
-        value = unwind(value)
-        if (isPromise(value)) {
-          queue(value).then((value) => setAttribute(name, value))
-          return
-        }
+      if (isPromise(value)) {
+        queue(value).then((value) => setAttribute(name, value))
+        return
       }
 
       var key = name.toLowerCase()
@@ -571,7 +551,7 @@ function updateChildren (newNode, oldNode) {
 
       if (match.nodeType === TEXT_NODE) {
         match.nodeValue = newChild.nodeValue
-      } else {
+      } else if (!ctx.isPlaceholder) {
         morph(newChild, match)
         updateChildren(newChild, match)
       }
