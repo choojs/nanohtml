@@ -105,6 +105,34 @@ Partial.prototype.update = function update (ctx) {
   }
 }
 
+function Lazy (primary, fallback) {
+  if (!(this instanceof Lazy)) return new Lazy(primary, fallback)
+  this.primary = unwind(primary)
+  this.fallback = fallback
+}
+
+Lazy.prototype = Object.create(Partial.prototype)
+Lazy.prototype.constructor = Lazy
+
+Lazy.prototype.render = function (oldNode) {
+  var { primary, fallback } = this
+  if (isPromise(primary)) {
+    this.partial = fallback()
+    primary.then((res) => render(res, oldNode)).catch((err) => {
+      render(fallback(err), oldNode)
+    })
+  } else {
+    this.partial = primary
+  }
+  var ctx = this.partial.render(oldNode)
+  oldNode = ctx.element
+  return ctx
+}
+
+Lazy.prototype.update = function (ctx) {
+  return this.partial.update(ctx)
+}
+
 function Context ({ key, element, editors, bind }) {
   this.key = key
   this.bind = bind
