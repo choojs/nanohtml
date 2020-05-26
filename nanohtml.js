@@ -70,7 +70,7 @@ Partial.prototype.render = function render (oldNode) {
 
   if (!template) {
     const placeholders = values.map(function toPlaceholder (_, index) {
-      return `\0placeholder${index}\0`
+      return '\0placeholder' + index + '\0'
     })
 
     const parser = hyperx(h, {
@@ -328,7 +328,8 @@ function h (tag, attrs, children) {
         }
 
         if (child instanceof Partial) {
-          node = document.createComment(`\0placeholder${placeholderIndex}\0`)
+          const value = '\0placeholder' + placeholderIndex + '\0'
+          node = document.createComment(value)
 
           // have placeholder identify as compatible with any element created
           // from the same template
