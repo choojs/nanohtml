@@ -1,3 +1,4 @@
+const assert = require('assert')
 const hyperx = require('hyperx')
 const morph = require('./morph')
 const SVG_TAGS = require('./lib/svg-tags')
@@ -21,6 +22,7 @@ exports.cache = cache
 exports.render = render
 exports.Partial = Partial
 exports.Context = Context
+exports.Lazy = Lazy
 
 function html (template, ...values) {
   return new Partial({ template, values })
@@ -106,6 +108,7 @@ Partial.prototype.update = function update (ctx) {
 }
 
 function Lazy (primary, fallback) {
+  assert(typeof fallback === 'function', 'fallback should be type function')
   if (!(this instanceof Lazy)) return new Lazy(primary, fallback)
   this.primary = unwind(primary)
   this.fallback = fallback
@@ -121,11 +124,17 @@ Lazy.prototype.render = function (oldNode) {
     primary.then((res) => render(res, oldNode)).catch((err) => {
       render(fallback(err), oldNode)
     })
+  } else if (primary == null) {
+    this.partial = fallback()
   } else {
     this.partial = primary
   }
+  if (!(this.partial instanceof Partial)) {
+    this.partial = html`${this.partial}`
+  }
   var ctx = this.partial.render(oldNode)
   oldNode = ctx.element
+  this.key = ctx.key
   return ctx
 }
 
