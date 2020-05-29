@@ -352,6 +352,32 @@ test('async partials', function (t) {
       return html`<div data-test="${val}">Hello ${val}!</div>`
     }
   })
+
+  t.test('does not affect ordering', function (t) {
+    t.plan(2)
+    var state = 0
+    var list = render(main())
+    t.equal(list.innerText.replace(/\s/g, ''), '1246', 'sync content rendered')
+    render(main(), list)
+    window.requestAnimationFrame(function () {
+      t.equal(list.innerText.replace(/\s/g, ''), '13456', 'async content in place')
+    })
+
+    function main (val) {
+      return html`
+        <ul>
+          <li>1</li>
+          ${state++ ? null : html`<li>2</li>`}
+          ${Promise.resolve(html`<li>3</li>`)}
+          ${[
+            html`<li>4</li>`,
+            Promise.resolve(html`<li>5</li>`),
+            html`<li>6</li>`
+          ]}
+        </ul>
+      `
+    }
+  })
 })
 
 test('lazy', function (t) {
