@@ -324,7 +324,10 @@ function h (tag, attrs, children) {
 
         function getPrevSibling (nodes, start = nodes.length - 1) {
           var res
-          for (let i = start; i >= 0; i--) res = nodes[i]
+          for (let i = start; i >= 0; i--) {
+            res = nodes[i]
+            if (res != null) break
+          }
           if (Array.isArray(res)) return getPrevSibling(res)
           return res
         }
