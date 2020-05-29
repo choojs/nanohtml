@@ -264,10 +264,11 @@ function h (tag, attrs, children) {
             newChild = newChild.flat(Infinity)
             oldChild = Array.isArray(oldChild) ? oldChild : [oldChild]
 
-            const newChildren = newChild.map(function (child, index) {
+            const newChildren = newChild.map(function childNode (child, index) {
               child = unwind(child)
               if (isPromise(child)) {
                 queue(child).then(function (child) {
+                  child = childNode(child)
                   appendInPlace(child, index, newChildren)
                   newChildren[index] = child
                 })
