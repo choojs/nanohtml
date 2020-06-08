@@ -22,10 +22,10 @@ exports.cache = cache
 exports.render = render
 exports.Partial = Partial
 exports.Context = Context
-exports.Lazy = Lazy
+exports.lazy = lazy
 
 function html (template, ...values) {
-  return new Partial({ template, values })
+  return new Partial({ template, values, key: template })
 }
 
 function render (partial, oldNode) {
@@ -60,10 +60,10 @@ function render (partial, oldNode) {
   return ctx.element
 }
 
-function Partial ({ template, values }) {
+function Partial ({ template, values, key }) {
   this.template = template
   this.values = values
-  this.key = template
+  this.key = key
 }
 
 Partial.prototype.render = function render (oldNode) {
@@ -107,39 +107,33 @@ Partial.prototype.update = function update (ctx) {
   }
 }
 
-function Lazy (primary, fallback) {
+function lazy (primary, fallback) {
   assert(typeof fallback === 'function', 'fallback should be type function')
-  if (!(this instanceof Lazy)) return new Lazy(primary, fallback)
-  this.primary = unwind(primary)
-  this.fallback = fallback
-}
-
-Lazy.prototype = Object.create(Partial.prototype)
-Lazy.prototype.constructor = Lazy
-
-Lazy.prototype.render = function (oldNode) {
-  var { primary, fallback } = this
   if (isPromise(primary)) {
-    this.partial = fallback()
+    let oldNode
+    const res = fallback()
+    if (res instanceof Partial) {
+      const { render, update } = res
+      res.render = function () {
+        var ctx = render.apply(res, arguments)
+        oldNode = ctx.element
+        return ctx
+      }
+      res.update = function (ctx) {
+        oldNode = ctx.element
+        return update.apply(res, arguments)
+      }
+    } else {
+      oldNode = toNode(res)
+    }
     primary.then((res) => render(res, oldNode)).catch((err) => {
       render(fallback(err), oldNode)
     })
+    return res
   } else if (primary == null) {
-    this.partial = fallback()
-  } else {
-    this.partial = primary
+    return fallback()
   }
-  if (!(this.partial instanceof Partial)) {
-    this.partial = html`${this.partial}`
-  }
-  var ctx = this.partial.render(oldNode)
-  oldNode = ctx.element
-  this.key = ctx.key
-  return ctx
-}
-
-Lazy.prototype.update = function (ctx) {
-  return this.partial.update(ctx)
+  return primary
 }
 
 function Context ({ key, element, editors, bind }) {

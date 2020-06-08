@@ -1,5 +1,5 @@
 var test = require('tape')
-var { html, render, Lazy } = require('../../nanohtml')
+var { html, render, lazy } = require('../../nanohtml')
 var { Component, Ref, memo, onupdate, onload } = require('../../component')
 
 test('renders html', function (t) {
@@ -380,12 +380,12 @@ test('async partials', function (t) {
   })
 })
 
-test('lazy', function (t) {
+test.only('lazy', function (t) {
   // TODO: test alternating return value (null/array/partial)
 
   t.test('fallback is required', function (t) {
     t.throws(function () {
-      Lazy(html`<span>Hello planet!</span>`)
+      lazy(html`<span>Hello planet!</span>`)
     }, 'throws when missing fallback')
     t.end()
   })
@@ -394,7 +394,7 @@ test('lazy', function (t) {
     var noop = Function.prototype
     var div = render(html`
       <div>
-        ${Lazy('Hello', noop)} ${Lazy([html`<span>world</span>`, '!'], noop)}
+        ${lazy('Hello', noop)} ${lazy([html`<span>world</span>`, '!'], noop)}
       </div>
     `)
     t.equal(div.innerText.trim(), 'Hello world!', 'content rendered')
@@ -404,7 +404,7 @@ test('lazy', function (t) {
   t.test('renders fallback in-place of null', function (t) {
     var div = render(html`
       <div>
-        ${Lazy(null, function () {
+        ${lazy(null, function () {
           return html`<span>Hello world!</span>`
         })}
       </div>
@@ -417,7 +417,7 @@ test('lazy', function (t) {
     t.plan(2)
     var div = render(html`
       <div>
-        ${Lazy(Promise.resolve(html`<span>Hello planet!</span>`), function () {
+        ${lazy(Promise.resolve(html`<span>Hello planet!</span>`), function () {
           return html`<span>Hello world!</span>`
         })}
       </div>
@@ -433,7 +433,7 @@ test('lazy', function (t) {
     var state = 0
     var div = render(html`
       <div>
-        ${Lazy(Promise.reject(new Error('test')), function (err) {
+        ${lazy(Promise.reject(new Error('test')), function (err) {
           if (state++) t.equal(err.message, 'test', 'rejection is forwarded')
           return html`<span>Hello world!</span>`
         })}
@@ -443,6 +443,32 @@ test('lazy', function (t) {
     window.requestAnimationFrame(function () {
       t.equal(div.innerText.trim(), 'Hello world!', 'fallback persisted')
     })
+  })
+
+  t.test('does not affect ordering', function (t) {
+    t.plan(2)
+    var state = 0
+    var list = render(main())
+    t.equal(list.innerText.replace(/\s/g, ''), '1246', 'sync content rendered')
+    render(main(), list)
+    window.requestAnimationFrame(function () {
+      t.equal(list.innerText.replace(/\s/g, ''), '13456', 'async content in place')
+    })
+
+    function main (val) {
+      return html`
+        <ul>
+          <li>1</li>
+          ${state++ ? null : html`<li>2</li>`}
+          ${Promise.resolve(html`<li>3</li>`)}
+          ${[
+            html`<li>4</li>`,
+            Promise.resolve(html`<li>5</li>`),
+            html`<li>6</li>`
+          ]}
+        </ul>
+      `
+    }
   })
 })
 
