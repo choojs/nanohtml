@@ -102,6 +102,34 @@ test('can mount fragments', function (t) {
   t.end()
 })
 
+test('tolerates DOM changes in-between renders', function (t) {
+  var ol = document.createElement('ol')
+  var two = html`<li id="two">2</li>`
+  render(main(), ol)
+  ol.children.two.remove()
+  ol.children.three.remove()
+  ol.children.five.remove()
+  t.equal(ol.innerText.replace(/\s/g, ''), '14', 'Children removed')
+  two = '2'
+  render(main(), ol)
+  t.equal(ol.innerText.replace(/\s/g, ''), '12345', 'All children added back')
+  t.end()
+
+  function main () {
+    return html`
+      <ol>
+        ${html`<li id="one">1</li>`}
+        ${two}
+        ${[
+          html`<li id="three">3</li>`,
+          html`<li id="four">4</li>`
+        ]}
+        ${html`<li id="five">5</li>`}
+      </ol>
+    `
+  }
+})
+
 test('updates in place', function (t) {
   var id = makeId()
   var div = document.createElement('div')
@@ -359,8 +387,9 @@ test('async partials', function (t) {
     var list = render(main())
     t.equal(list.innerText.replace(/\s/g, ''), '1246', 'sync content rendered')
     render(main(), list)
+    list.children.four.remove()
     window.requestAnimationFrame(function () {
-      t.equal(list.innerText.replace(/\s/g, ''), '13456', 'async content in place')
+      t.equal(list.innerText.replace(/\s/g, ''), '1356', 'async content in place')
     })
 
     function main (val) {
@@ -370,7 +399,7 @@ test('async partials', function (t) {
           ${state++ ? null : html`<li>2</li>`}
           ${Promise.resolve(html`<li>3</li>`)}
           ${[
-            html`<li>4</li>`,
+            html`<li id="four">4</li>`,
             Promise.resolve(html`<li>5</li>`),
             html`<li>6</li>`
           ]}
@@ -380,7 +409,7 @@ test('async partials', function (t) {
   })
 })
 
-test.only('lazy', function (t) {
+test('lazy', function (t) {
   // TODO: test alternating return value (null/array/partial)
 
   t.test('fallback is required', function (t) {

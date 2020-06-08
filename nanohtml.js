@@ -54,7 +54,7 @@ function render (partial, oldNode) {
       removeChild(Array.from(oldNode.childNodes))
       oldNode.appendChild(ctx.element)
     } else {
-      oldNode.parentElement.replaceChild(ctx.element, oldNode)
+      oldNode.parentNode.replaceChild(ctx.element, oldNode)
     }
   }
   return ctx.element
@@ -290,29 +290,45 @@ function h (tag, attrs, children) {
             }
 
             children[index] = oldChild = newChildren
-          } else if (isPromise(newChild)) {
-            children[index] = oldChild = replaceChild(null, oldChild)
+            return
+          }
+
+          if (isPromise(newChild)) {
+            // children[index] = oldChild = replaceChild(null, oldChild)
             queue(newChild).then((newChild) => update(newChild))
+            newChild = null
           } else if (newChild instanceof Partial) {
             let ctx = cache.get(oldChild)
             if (ctx && newChild.key === ctx.key && !ctx.isPlaceholder) {
               newChild.update(ctx)
+              newChild = oldChild
             } else {
               ctx = newChild.render(oldChild)
               newChild.update(ctx)
-              children[index] = oldChild = replaceChild(ctx.element, oldChild)
+              newChild = ctx.element
             }
           } else {
-            children[index] = oldChild = replaceChild(newChild, oldChild)
+            newChild = toNode(newChild)
           }
+
+          if (oldChild && oldChild.parentNode !== element) {
+            appendInPlace(newChild)
+          } else {
+            replaceChild(newChild, oldChild)
+          }
+
+          children[index] = oldChild = newChild
         }
 
         function appendInPlace (node, _index, _children) {
           if (!node) return
-          var prev = getPrevSibling(_children, _index - 1)
+          var prev
+          if (typeof _index !== 'undefined') {
+            prev = getPrevSibling(_children, _index - 1)
+          }
           if (!prev) prev = getPrevSibling(children, index - 1)
           var next = prev ? prev.nextSibling : element.children[0]
-          if (next && next.isSameNode(node)) return
+          if (next && next.isSameNode && next.isSameNode(node)) return
           if (next) element.insertBefore(node, next)
           else element.appendChild(node)
         }
@@ -321,8 +337,9 @@ function h (tag, attrs, children) {
           var res
           for (let i = start; i >= 0; i--) {
             res = nodes[i]
-            if (res != null) break
+            if (res != null && res.parentNode === element) break
           }
+          if (res && res.parentNode !== element) res = null
           if (Array.isArray(res)) return getPrevSibling(res)
           return res
         }
@@ -347,7 +364,7 @@ function h (tag, attrs, children) {
               }
             } else {
               node = node || toNode(child)
-              if (!isSame(node, oldChild) || cache.has(oldChild)) continue
+              if (!isEqual(node, oldChild) || cache.has(oldChild)) continue
               if (node.nodeType === TEXT_NODE) {
                 oldChild.nodeValue = node.nodeValue
               } else {
@@ -368,7 +385,7 @@ function h (tag, attrs, children) {
 
           // have placeholder identify as compatible with any element created
           // from the same template
-          node.isSameNode = function isSameNode (node) {
+          node.isEqualNode = function isEqualNode (node) {
             if (!cache.has(node)) return false
             return cache.get(node).key === child.key
           }
@@ -574,7 +591,7 @@ function updateChildren (newNode, oldNode) {
 
     let match
     for (let i = 0, len = oldChildren.length; i < len; i++) {
-      if (isSame(newChild, oldChildren[i])) {
+      if (isEqual(newChild, oldChildren[i])) {
         match = oldChildren[i]
         oldChildren.splice(i, 1)
         break
@@ -663,9 +680,9 @@ function toNode (value) {
   }
 }
 
-function isSame (a, b) {
+function isEqual (a, b) {
   if (a.id) return a.id === b.id
-  if (a.isSameNode && a.isSameNode(b)) return true
+  if (a.isEqualNode && a.isEqualNode(b)) return true
   if (a.tagName && b.tagName && a.tagName === b.tagName) return true
   if (a.nodeType === TEXT_NODE && b.nodeType === TEXT_NODE) return true
   return false
