@@ -1,28 +1,38 @@
-const assert = require('assert')
+'use strict'
+
 const hyperx = require('hyperx')
 const morph = require('./morph')
+const TEXT_TAGS = require('./lib/text-tags')
 const SVG_TAGS = require('./lib/svg-tags')
 const BOOL_PROPS = require('./lib/bool-props')
 const DIRECT_PROPS = require('./lib/direct-props')
+const VERBATIM_TAGS = require('./lib/verbatim-tags')
 
 const cache = new WeakMap()
 const pending = new WeakMap()
 const templates = new WeakMap()
 
+const onlyWhiteSpaceRegexp = /^[\n\s]+$/
+const trailingNewlineRegex = /\n[\s]+$/
+const leadingNewlineRegex = /^\n[\s]+/
+const trailingSpaceRegex = /[\s]+$/
+const leadingSpaceRegex = /^[\s]+/
+const multiSpaceRegex = /[\n\s]+/g
 const PLACEHOLDER_INDEX = /\0placeholder(\d+)\0/g
 const XLINKNS = 'http://www.w3.org/1999/xlink'
 const SVGNS = 'http://www.w3.org/2000/svg'
 const FRAGMENT = Symbol('fragment')
 const PENDING = Symbol('pending')
+const REF = Symbol('ref')
 const COMMENT_TAG = '!--'
 const TEXT_NODE = 3
 
+exports.Ref = Ref
 exports.html = html
 exports.cache = cache
 exports.render = render
 exports.Partial = Partial
 exports.Context = Context
-exports.lazy = lazy
 
 function html (template, ...values) {
   return new Partial({ template, values, key: template })
@@ -54,10 +64,37 @@ function render (partial, oldNode) {
       removeChild(Array.from(oldNode.childNodes))
       oldNode.appendChild(ctx.element)
     } else {
-      oldNode.parentNode.replaceChild(ctx.element, oldNode)
+      oldNode.replaceWith(ctx.element)
     }
   }
   return ctx.element
+}
+
+function Ref (uid = makeId()) {
+  if (!(this instanceof Ref)) return new Ref(uid)
+  if (typeof window === 'undefined') return uid
+  return new Proxy(this, {
+    get: (self, key, receiver) => {
+      var element = document.getElementById(uid)
+      switch (key) {
+        case REF: return uid
+        case Symbol.toPrimitive:
+        case 'toString':
+        case 'toJSON': return () => uid
+        case 'element': return element
+        default: return Reflect.get(element || this, key)
+      }
+    },
+    set (obj, key, value) {
+      if (key === REF) return (uid = value[REF])
+      var element = document.getElementById(uid)
+      if (element) return Reflect.set(element, key, value)
+    }
+  })
+}
+if (typeof window !== 'undefined') {
+  Ref.prototype = Object.create(window.Element.prototype)
+  Ref.prototype.constructor = Ref
 }
 
 function Partial ({ template, values, key }) {
@@ -75,10 +112,10 @@ Partial.prototype.render = function render (oldNode) {
       return '\0placeholder' + index + '\0'
     })
 
-    const parser = hyperx(h, {
+    const parser = hyperx(createTemplate, {
       comments: true,
       createFragment (nodes) {
-        return h(FRAGMENT, {}, nodes)
+        return createTemplate(FRAGMENT, {}, nodes)
       }
     })
 
@@ -87,10 +124,10 @@ Partial.prototype.render = function render (oldNode) {
     if (typeof template === 'string') {
       if (isPlaceholder(template)) {
         // the only child is a partial, e.g. html`${html`<p>Hi</p>`}` or html`${'Hi'}`
-        template = h(FRAGMENT, {}, placeholders)
+        template = createTemplate(FRAGMENT, {}, placeholders)
       } else {
         // the only child is text, e.g. html`Hi`
-        template = h(FRAGMENT, {}, [template])
+        template = createTemplate(FRAGMENT, {}, [template])
       }
     }
 
@@ -107,35 +144,6 @@ Partial.prototype.update = function update (ctx) {
   }
 }
 
-function lazy (primary, fallback) {
-  assert(typeof fallback === 'function', 'fallback should be type function')
-  if (isPromise(primary)) {
-    let oldNode
-    const res = fallback()
-    if (res instanceof Partial) {
-      const { render, update } = res
-      res.render = function () {
-        var ctx = render.apply(res, arguments)
-        oldNode = ctx.element
-        return ctx
-      }
-      res.update = function (ctx) {
-        oldNode = ctx.element
-        return update.apply(res, arguments)
-      }
-    } else {
-      oldNode = toNode(res)
-    }
-    primary.then((res) => render(res, oldNode)).catch((err) => {
-      render(fallback(err), oldNode)
-    })
-    return res
-  } else if (primary == null) {
-    return fallback()
-  }
-  return primary
-}
-
 function Context ({ key, element, editors, bind }) {
   this.key = key
   this.bind = bind
@@ -145,7 +153,7 @@ function Context ({ key, element, editors, bind }) {
   this.editors = editors.slice().sort((a, b) => a.index - b.index)
 }
 
-function h (tag, attrs, children) {
+function createTemplate (tag, attrs, children = []) {
   // If an svg tag, it needs a namespace
   if (SVG_TAGS.indexOf(tag) !== -1) {
     attrs.namespace = SVGNS
@@ -181,7 +189,20 @@ function h (tag, attrs, children) {
     var editors = []
 
     Object.entries(attrs).forEach(function handleAttribute ([name, value]) {
-      if (isPlaceholder(name)) {
+      if (tag === COMMENT_TAG) return
+      if (isPlaceholder(name) && isPlaceholder(value)) {
+        var index = getPlaceholderIndex(name)
+        if (index === getPlaceholderIndex(value)) {
+          editors.push({
+            index: index,
+            update (attrs) {
+              Object.entries(attrs).forEach(function ([name, value]) {
+                setAttribute(name, value)
+              })
+            }
+          })
+        }
+      } else if (isPlaceholder(name)) {
         editors.push({
           index: getPlaceholderIndex(name),
           update (name) {
@@ -192,8 +213,33 @@ function h (tag, attrs, children) {
         editors.push({
           index: getPlaceholderIndex(value),
           update (value) {
+            if (name === 'id' && value instanceof Ref) {
+              var ctx = cache.get(element)
+              var ref = ctx.state.get(REF)
+              if (!ref) {
+                ctx.state.set(REF, value)
+              } else {
+                value[REF] = ref
+                value = ref
+              }
+            }
             setAttribute(name, value)
           }
+        })
+      } else if (PLACEHOLDER_INDEX.test(name)) {
+        name.replace(PLACEHOLDER_INDEX, function placeholderAttr (match) {
+          editors.push({
+            index: getPlaceholderIndex(match),
+            update (_, all) {
+              var next = name.replace(
+                PLACEHOLDER_INDEX,
+                function updateAttr (_, index) {
+                  return all[index]
+                }
+              )
+              setAttribute(next, value)
+            }
+          })
         })
       } else if (PLACEHOLDER_INDEX.test(value)) {
         value.replace(PLACEHOLDER_INDEX, function placeholderAttr (match) {
@@ -216,7 +262,7 @@ function h (tag, attrs, children) {
     })
 
     var oldChildren = oldNode && Array.from(oldNode.childNodes)
-    var newChildren = children.reduce(function eachChild (children, child, index) {
+    var newChildren = children.reduce(function eachChild (children, child, index, all) {
       if (typeof child === 'function') child = child(values, key)
 
       if (isPlaceholder(child)) {
@@ -238,14 +284,16 @@ function h (tag, attrs, children) {
         editors.push(...child.editors)
       } else {
         children[index] = child = appendChild(child)
-        cache.set(child, new Context({
-          key: Symbol(index),
-          element: child,
-          editors: [],
-          bind (newNode) {
-            children[index] = newNode
-          }
-        }))
+        if (child != null) {
+          cache.set(child, new Context({
+            key: Symbol(index),
+            element: child,
+            editors: [],
+            bind (newNode) {
+              children[index] = newNode
+            }
+          }))
+        }
       }
 
       return children
@@ -294,11 +342,10 @@ function h (tag, attrs, children) {
           }
 
           if (isPromise(newChild)) {
-            // children[index] = oldChild = replaceChild(null, oldChild)
             queue(newChild).then((newChild) => update(newChild))
             newChild = null
           } else if (newChild instanceof Partial) {
-            let ctx = cache.get(oldChild)
+            let ctx = oldChild && cache.get(oldChild)
             if (ctx && newChild.key === ctx.key && !ctx.isPlaceholder) {
               newChild.update(ctx)
               newChild = oldChild
@@ -311,10 +358,10 @@ function h (tag, attrs, children) {
             newChild = toNode(newChild)
           }
 
-          if (oldChild && oldChild.parentNode !== element) {
-            appendInPlace(newChild)
-          } else {
+          if (oldChild && oldChild.parentNode === element) {
             replaceChild(newChild, oldChild)
+          } else {
+            appendInPlace(newChild)
           }
 
           children[index] = oldChild = newChild
@@ -327,26 +374,49 @@ function h (tag, attrs, children) {
             prev = getPrevSibling(_children, _index - 1)
           }
           if (!prev) prev = getPrevSibling(children, index - 1)
-          var next = prev ? prev.nextSibling : element.children[0]
+          var next = prev && prev.nextSibling
           if (next && next.isSameNode && next.isSameNode(node)) return
-          if (next) element.insertBefore(node, next)
+          if (next) next.before(node)
           else element.appendChild(node)
         }
 
         function getPrevSibling (nodes, start = nodes.length - 1) {
-          var res
           for (let i = start; i >= 0; i--) {
-            res = nodes[i]
-            if (res != null && res.parentNode === element) break
+            let node = nodes[i]
+            if (Array.isArray(node)) node = getPrevSibling(node)
+            if (node != null && node.parentNode === element) return node
           }
-          if (res && res.parentNode !== element) res = null
-          if (Array.isArray(res)) return getPrevSibling(res)
-          return res
         }
       }
 
       function appendChild (child, placeholderIndex) {
         var node
+
+        if (typeof child === 'string') {
+          if (!VERBATIM_TAGS.includes(tag)) {
+            if (!TEXT_TAGS.includes(tag)) {
+              if (onlyWhiteSpaceRegexp.test(child)) {
+                const prev = children[index - 1]
+                if (!prev || !TEXT_TAGS.includes(prev.nodeName.toLowerCase())) {
+                  return null
+                }
+              }
+            }
+
+            const leader = index === 0 ? '' : ' '
+            const tail = index === all.length - 1 ? '' : ' '
+            child = child
+              .replace(leadingNewlineRegex, leader)
+              .replace(leadingSpaceRegex, ' ')
+              .replace(trailingSpaceRegex, tail)
+              .replace(trailingNewlineRegex, '')
+              .replace(multiSpaceRegex, ' ')
+
+            if (child === '') {
+              return null
+            }
+          }
+        }
 
         if (oldNode && element === oldNode) {
           for (let i = 0; i < oldChildren.length; i++) {
@@ -425,7 +495,7 @@ function h (tag, attrs, children) {
                 insertBefore(newChild, oldChild)
                 removeChild(oldChild)
               } else if (!newChild.isSameNode(oldChild)) {
-                element.replaceChild(newChild, oldChild)
+                oldChild.replaceWith(newChild)
               }
             } else {
               insertBefore(newChild, oldChild)
@@ -468,6 +538,11 @@ function h (tag, attrs, children) {
     }
 
     var ctx = new Context({ key, element, editors, bind })
+
+    if (attrs.id && isPlaceholder(attrs.id)) {
+      ctx.state.set(REF, values[getPlaceholderIndex(attrs.id)])
+    }
+
     cache.set(element, ctx)
     return ctx
 
@@ -479,10 +554,10 @@ function h (tag, attrs, children) {
       oldChild = Array.isArray(oldChild) ? oldChild[0] : oldChild
       if (Array.isArray(newChild)) {
         for (const child of newChild) {
-          element.insertBefore(child, oldChild)
+          oldChild.before(child)
         }
       } else {
-        element.insertBefore(newChild, oldChild)
+        oldChild.before(newChild)
       }
     }
 
@@ -511,13 +586,13 @@ function h (tag, attrs, children) {
       if (name === 'htmlFor') name = 'for'
 
       // If a property is boolean, set itself to the key
-      if (BOOL_PROPS.indexOf(key) !== -1) {
+      if (BOOL_PROPS.includes(key)) {
         if (String(value) === 'true') value = key
-        else if (String(value) === 'false') return
+        else if (String(value) === 'false' || value == null) return
       }
 
       // If a property prefers being set directly vs setAttribute
-      if (key.slice(0, 2) === 'on' || DIRECT_PROPS.indexOf(key) !== -1) {
+      if (key.indexOf('on') === 0 || DIRECT_PROPS.includes(key)) {
         element[name] = value
       } else {
         if (namespace) {
@@ -609,15 +684,15 @@ function updateChildren (newNode, oldNode) {
         updateChildren(newChild, match)
       }
 
-      if (prev && prev.nextSibling) {
-        oldNode.insertBefore(match, prev.nextSibling)
+      if (prev) {
+        prev.after(match)
       } else {
         oldNode.appendChild(match)
       }
       prev = match
     } else {
-      if (prev && prev.nextSibling) {
-        oldNode.insertBefore(newChild, prev.nextSibling)
+      if (prev) {
+        prev.after(newChild)
       } else {
         oldNode.appendChild(newChild)
       }
@@ -694,4 +769,8 @@ function isPlaceholder (value) {
 
 function getPlaceholderIndex (placeholder) {
   return parseInt(placeholder.slice('\0placeholder'.length), 10)
+}
+
+function makeId () {
+  return `__ref-${Math.random().toString(36).substr(-4)}`
 }
