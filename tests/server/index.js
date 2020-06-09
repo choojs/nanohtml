@@ -68,8 +68,8 @@ test('respect query parameters', function (t) {
   t.plan(1)
 
   var param = 'planet'
-  var expected = '<a href="/greeting?query=planet">Hello planet</a>'
-  var result = html`<a href="/greeting?query=${param}">Hello planet</a>`.toString()
+  var expected = '<a href="/hello?query=planet">Hello planet</a>'
+  var result = html`<a href="/hello?query=${param}">Hello ${param}</a>`.toString()
 
   t.equal(result, expected)
   t.end()
@@ -127,4 +127,41 @@ test('nested multiple root elements', function (t) {
 
   t.equal(expected, result)
   t.end()
+})
+
+test('resolves generators', function (t) {
+  var expected = '<div>Hello <span>planet</span></div>'
+  var result = html`<div>Hello ${html`<span>${child()}</span>`}</div>`
+  t.equal(result.toString(), expected)
+  t.end()
+
+  function * child () {
+    var value = yield 'planet'
+    return value
+  }
+})
+
+test('resolves promises', function (t) {
+  t.plan(2)
+  var expected = '<div class="greeting">Hello <span>planet</span></div>'
+  var result = html`<div class="${Promise.resolve('greeting')}">Hello ${Promise.resolve(html`<span>${[Promise.resolve('planet')]}</span>`)}</div>`
+  t.ok(result instanceof Promise, 'returns promise')
+  result.then(function (result) {
+    t.equal(result.toString(), expected)
+  })
+})
+
+test('resolves generators with promises', function (t) {
+  t.plan(2)
+  var expected = '<div class="greeting">Hello <span>planet</span></div>'
+  var result = html`<div class="${Promise.resolve('greeting')}">Hello ${html`<span>${child()}</span>`}</div>`
+  t.ok(result instanceof Promise, 'returns promise')
+  result.then(function (result) {
+    t.equal(result.toString(), expected)
+  })
+
+  function * child () {
+    var value = yield Promise.resolve('planet')
+    return value
+  }
 })
