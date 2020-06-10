@@ -1,6 +1,6 @@
 var test = require('tape')
 var { html, render } = require('../../nanohtml')
-var { Component, Ref, memo, onupdate, onload } = require('../../component')
+var { Component, memo, onupdate, onload } = require('../../component')
 
 // TODO: test alternating return value (null/array/partial)
 
@@ -117,45 +117,6 @@ test('component can memoize arguments', function (t) {
 
   function main (value) {
     return html`<div>${Greeting(value)}</div>`
-  }
-})
-
-test('component can access children with ref', function (t) {
-  t.plan(7)
-
-  var ids = [makeId(), makeId()]
-  var div = document.createElement('div')
-  div.innerHTML = '<ul><li>a</li><li>b</li></ul>'
-  document.body.appendChild(div)
-
-  var List = Component(function List () {
-    var refA = new Ref()
-    var refB = new Ref('test')
-    t.ok(refA instanceof Ref, 'inherits from Ref')
-    t.ok(refA instanceof window.HTMLCollection, 'inherits from HTMLCollection')
-    onupdate(function () {
-      window.requestAnimationFrame(function () {
-        var [a, b] = ids.map((id) => document.getElementById(id))
-        t.equal(a, refA[0], 'ref a found')
-        t.equal(b, refB[0], 'ref b found')
-        t.equal(b.className, 'test', 'custom className used')
-        t.equal(refB.toString(), 'test', 'can be serialized to string')
-        t.equal(JSON.stringify(refB), '"test"', 'can be serialized to JSON')
-        document.body.removeChild(div)
-      })
-    })
-    return html`
-      <ul>
-        <li id="${ids[0]}" class="${refA}">a</li>
-        <li id="${ids[1]}" class="${refB}">b</li>
-      </ul>
-    `
-  })
-
-  render(main(), div)
-
-  function main () {
-    return html`<div>${List()}</div>`
   }
 })
 

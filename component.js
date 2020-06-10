@@ -1,13 +1,12 @@
 var assert = require('nanoassert')
 var { Partial } = require('./nanohtml')
 
+var loadid = `__onload-${Math.random().toString(36).substr(-4)}`
 var identifier = Symbol('nanohtml/component')
 var tracking = new WeakMap()
 var windows = new WeakSet()
-var loadid = makeId()
 var stack = []
 
-exports.Ref = Ref
 exports.memo = memo
 exports.onload = onload
 exports.onupdate = onupdate
@@ -19,7 +18,6 @@ function Component (fn, key, args) {
     this.beforeupdate = []
     this.afterupdate = []
     this.beforeload = []
-    this.refs = []
     this.args = args
     this.key = key
     this.fn = fn
@@ -75,11 +73,6 @@ Component.prototype.update = function (ctx) {
     const partial = this.rendered || this.resolve(ctx)
     unwind(cached.beforeupdate, this.args)
     Partial.prototype.update.call(partial, ctx)
-    unwind(this.refs.map((ref) => (el) => ref.init(el)), [ctx.element])
-    assert(
-      this.refs.every(({ uid }) => !ctx.element.classList.contains(uid)),
-      'nanohtml/component: refs cannot be used with root element, use onload to access root element'
-    )
     unwind(this.afterupdate, this.args)
     unwind(this.beforeload, [ctx.element])
     ctx.state.set(identifier, this)
@@ -89,48 +82,11 @@ Component.prototype.update = function (ctx) {
   }
 }
 
-function Ref (uid = makeId()) {
-  assert(stack.length, 'nanohtml/component: cannot call Ref outside component render cycle')
-  this.uid = uid
-  stack[0].refs.push(this)
-  if (typeof window === 'undefined' || typeof Proxy !== 'function') return this
-  return new Proxy(this, {
-    get: (self, key, receiver) => {
-      if (this[key]) return this[key]
-      return Reflect.get(this.collection || this, key, receiver)
-    }
-  })
-}
-Ref.prototype = Object.create(window.HTMLCollection.prototype)
-Ref.prototype.constructor = Ref
-Ref.prototype[Symbol.toPrimitive] = serializeRef
-Ref.prototype.toString = serializeRef
-Ref.prototype.toJSON = serializeRef
-Ref.prototype.init = function (element) {
-  this.collection = element.getElementsByClassName(this.uid)
-}
-// for compatibility with legacy browsers w/o Proxy
-Ref.prototype.item = function (index) {
-  return this.collection.item(index)
-}
-// for compatibility with legacy browsers w/o Proxy
-Ref.prototype.namedItem = function (name) {
-  return this.collection.namedItem(name)
-}
-
-function serializeRef () {
-  return this.uid
-}
-
 function unwind (arr, args) {
   while (arr.length) {
     const fn = arr.pop()
     fn(...args)
   }
-}
-
-function makeId () {
-  return `__ref-${Math.random().toString(36).substr(-4)}`
 }
 
 function onupdate (fn) {
