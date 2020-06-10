@@ -1,5 +1,5 @@
 let test = require('tape')
-var { html, render } = require('../../nanohtml')
+var { html, render } = require('../../')
 
 /* Note:
 Failing tests have been commented. They include the following:

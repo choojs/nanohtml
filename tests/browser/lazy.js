@@ -1,5 +1,5 @@
 var test = require('tape')
-var { html, render } = require('../../nanohtml')
+var { html, render } = require('../../')
 
 // TODO: test alternating return value (null/array/partial)
 

@@ -1,5 +1,5 @@
 var test = require('tape')
-var { html, render } = require('../../nanohtml')
+var { html, render } = require('../../')
 
 test('create inputs', function (t) {
   var expected = 'testing'
@@ -15,7 +15,6 @@ test('svg', function (t) {
     <rect width="1" height="2" x="0" fill="#008d46" />
     <use xlink:href="#test" />
   </svg>`)
-  console.log(result.outerHTML)
   t.equal(result.tagName, 'svg', 'create svg tag')
   t.equal(result.childNodes[0].tagName, 'rect', 'created child rect tag')
   t.equal(result.childNodes[1].getAttribute('xlink:href'), '#test', 'created child use tag with xlink:href')

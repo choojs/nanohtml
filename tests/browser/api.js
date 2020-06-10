@@ -1,5 +1,5 @@
 var test = require('tape')
-var { html, render, Ref } = require('../../nanohtml')
+var { html, render, Ref } = require('../../')
 
 test('renders html', function (t) {
   var el = render(html`<span>Hello ${'planet'}!</span>`)
