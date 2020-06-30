@@ -156,6 +156,8 @@ b.bundle().pipe(process.stdout)
 }
 ```
 
+## Bundling
+
 ### Webpack
 At the time of writing there's no Webpack loader yet. We'd love a contribution!
 
@@ -188,9 +190,17 @@ With options:
 #### Options
 
  - `useImport` - Set to true to use `import` statements for injected modules.
-    By default, `require` is used. Enable this if you're using Rollup.
+    By default, `require` is used.
  - `appendChildModule` - Import path to a module that contains an `appendChild`
     function. Defaults to `"nanohtml/lib/append-child"`.
+
+### Rollup
+
+Use the [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs#using-with-rollupplugin-node-resolve) plugin with [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve). Explicitly import the browser or server entrypoint in your application. E.g.:
+
+```
+import html from 'nanohtml/lib/browser';
+```
 
 ## Attributions
 Shout out to [Shama](https://github.com/shama) and
