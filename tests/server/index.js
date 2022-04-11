@@ -33,6 +33,26 @@ test('style attribute', function (t) {
   t.end()
 })
 
+test('escape text inside html', function (t) {
+  t.plan(1)
+
+  var expected = '<span>Hello &lt;3</span>'
+  var result = html`<span>${'Hello <3'}</span>`.toString()
+
+  t.equal(result, expected)
+  t.end()
+})
+
+test('escape array of text inside html', function (t) {
+  t.plan(1)
+
+  var expected = '<span>Hello &lt;3</span>'
+  var result = html`<span>${['Hello', ' ', '<3']}</span>`.toString()
+
+  t.equal(result, expected)
+  t.end()
+})
+
 test('unescape html', function (t) {
   t.plan(1)
 
