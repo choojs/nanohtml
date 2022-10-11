@@ -117,6 +117,19 @@ var el = html`
 document.querySelector('ul').appendChild(el)
 ```
 
+### Conditional attributes
+
+Use a javascript object to conditionally add HTML attributes.
+
+```js
+var html = require('nanohtml')
+
+var customAttr = isFuzzy ? { 'data-hand-feel': 'super-fuzzy' } : {}
+var el = html`
+  <div ${ customAttr }></div>
+`
+```
+
 ## Static optimizations
 Parsing HTML has significant overhead. Being able to parse HTML statically,
 ahead of time can speed up rendering to be about twice as fast.
